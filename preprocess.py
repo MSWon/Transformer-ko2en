@@ -9,127 +9,101 @@ import pandas as pd
 import sentencepiece as spm
 import re
 import os
-import pickle
-from nltk import tokenize
+from nltk.tokenize.toktok import ToktokTokenizer
 from sklearn.utils import shuffle
-from translate.storage.tmx import tmxfile
 
+tokenizer = ToktokTokenizer()
 
-'''
-df1 = pd.read_excel("1.구어체.xlsx", sheetname = "Sheet1")
+filename_list = [dir for dir in sorted(os.listdir()) if ".xlsx" in dir]
 
-df2_1 = pd.read_excel("2.대화체.xlsx", sheetname = "Sheet1")
-df2_2 = pd.read_excel("2.대화체.xlsx", sheetname = "Sheet3")
+def prepro(sent):
+    sent = re.sub("\(.*?\)|\[.*?\]", "", sent)
+    sent = re.sub("[^0-9a-zA-Z가-힣_\-@\.:&+!?'/,\s]", "", sent)
+    sent = re.sub("(http[s]?://([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)|(www.([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)", "<URL>", sent)
+    return sent
 
-df3_1 = pd.read_excel("3.문어체-뉴스.xlsx", sheetname = "번역")
-df3_2 = pd.read_excel("3.문어체-뉴스.xlsx", sheetname = "MTPE")
+ko_corpus, en_corpus = [], []
+idx = 1
+for filename in filename_list:
+    print("file num {} in progress".format(idx))
+    df = pd.read_excel(filename)
+    ko_corpus += [prepro(sent) for sent in df['원문']]
+    en_corpus += [prepro(sent) for sent in df['번역문']]
+    idx += 1
 
-df4 = pd.read_excel("4.문어체-한국문화.xlsx")
-df5 = pd.read_excel("5.문어체-조례.xlsx")
-df6 = pd.read_excel("6.문어체-지자체웹사이트.xlsx")
+print("Done")
+print("Now shuffling data")
 
-
-ko_corpus = list(df1['ko'])+list(df2_1['한국어'])+list(df2_2['한국어'])+list(df3_1['한국어'])\
-+ list(df3_2['한국어'])+list(df4['원문'])+list(df5['원문'])+list(df6['원문'])
-
-ko_corpus = [" ".join(tokenize.word_tokenize(sent)) for sent in ko_corpus]
-
-en_corpus = list(df1['en'])+list(df2_1['영어'])+list(df2_2['영어'])+list(df3_1['영어'])\
-+list(df3_2['영어'])+list(df4['PE'])+list(df5['PE'])+list(df6['PE'])
-
-en_corpus = [" ".join(tokenize.word_tokenize(str(sent))) for sent in en_corpus]
-
-'''
-
-with open("en-ko_1.tmx", 'rb') as fin:
-    tmx_file = tmxfile(fin, 'en', 'ko')
-
-ko_corpus = []
-en_corpus = []
-    
-for node in tmx_file.unit_iter():
-    ko_corpus.append(" ".join(tokenize.word_tokenize(node.gettarget())))
-    en_corpus.append(" ".join(tokenize.word_tokenize(node.getsource())))
-
-'''
-
-with open("korean-english-park.train.ko", 'r', encoding = "utf-8") as f:
-    for sent in f:
-        ko_corpus.append(" ".join(tokenize.word_tokenize(sent)))
-
-with open("korean-english-park.train.en", 'r', encoding = "utf-8") as f:
-    for sent in f:
-        en_corpus.append(" ".join(tokenize.word_tokenize(sent)))
-
-'''
-
-df = pd.DataFrame({'ko':ko_corpus, 
+df = pd.DataFrame({'ko':ko_corpus,
                    'en':en_corpus})
 
 df = shuffle(df)
 
+ko_train = list(df['ko'])
+en_train = list(df['en'])
 
-ko_train = list(df['ko'])[2000:]
-en_train = list(df['en'])[2000:]
+with open('./train.ko','w') as f:
+    for sent in ko_train:
+        f.write(sent + "\n")
 
-ko_test = list(df['ko'])[:2000]
-en_test = list(df['en'])[:2000]
+with open('./train.en','w') as f:
+    for sent in en_train:
+        f.write(sent + "\n")
 
+print("Now training sentencepiece model")
 
-
-if(not os.path.exists("./ko2en")):
-    os.mkdir("./ko2en")
-
-with open('./ko2en/train.ko' ,'wb') as f:
-    pickle.dump(ko_train, f)
-
-with open('./ko2en/train.en' ,'wb') as f:
-    pickle.dump(en_train, f)
-
-with open('./ko2en/train' , 'w', encoding = 'utf-8') as f:    
-    for sent in en_train+ko_train:
-        f.write(sent+"\n")
-   
-train = '--input=ko2en/train --pad_id=0 --unk_id=1 \
+train_ko =  '--input=train.ko --pad_id=0 --unk_id=1 \
              --bos_id=2 --eos_id=3\
-             --model_prefix=bpe \
+             --model_prefix=bpe.ko \
+             --user_defined_symbols=<URL> \
              --vocab_size={} \
-             --model_type=bpe'.format(30000)
+             --model_type=bpe'.format(32000)
              
-spm.SentencePieceTrainer.Train(train)
+spm.SentencePieceTrainer.Train(train_ko)
 
-ko_test, en_test = [], []
+f = open("bpe.ko.vocab","r")
+with open("bpe.ko.vocab2", "w") as f1:
+	for sent in f:
+		f1.write(sent.split()[0] + "\n")
 
-with open("korean-english-park.test.ko", 'r', encoding = "utf-8") as f:
+
+train_en = '--input=train.en --pad_id=0 --unk_id=1 \
+             --bos_id=2 --eos_id=3\
+             --model_prefix=bpe.en \
+             --user_defined_symbols=<URL> \
+             --vocab_size={} \
+             --model_type=bpe'.format(32000)
+
+spm.SentencePieceTrainer.Train(train_en)
+
+
+f = open("bpe.en.vocab","r")
+with open("bpe.en.vocab2", "w") as f1:
     for sent in f:
-        ko_test.append(" ".join(tokenize.word_tokenize(sent)))
+        f1.write(sent.split()[0] + "\n")
 
-with open("korean-english-park.test.en", 'r', encoding = "utf-8") as f:
+print("Converting to bpe tokenized version")
+
+sp = spm.SentencePieceProcessor()
+sp.Load("bpe.en.model")
+
+f = open("train.en", "r")
+
+with open("train.en.bpe","w") as f1:
     for sent in f:
-        en_test.append(" ".join(tokenize.word_tokenize(sent)))
-
-with open('./ko2en/test.ko' ,'wb') as f:
-    pickle.dump(ko_test, f)
-
-with open('./ko2en/test.en' ,'wb') as f:
-    pickle.dump(en_test, f)
+        f1.write(" ".join(sp.EncodeAsPieces(sent)) + "\n")
 
 
-ko_dev, en_dev = [], []
+sp = spm.SentencePieceProcessor()
+sp.Load("bpe.ko.model")
 
-with open("korean-english-park.dev.ko", 'r', encoding = "utf-8") as f:
+f = open("train.ko", "r")
+
+with open("train.ko.bpe","w") as f1:
     for sent in f:
-        ko_dev.append(" ".join(tokenize.word_tokenize(sent)))
+        f1.write(" ".join(sp.EncodeAsPieces(sent)) + "\n")
 
-with open("korean-english-park.dev.en", 'r', encoding = "utf-8") as f:
-    for sent in f:
-        en_dev.append(" ".join(tokenize.word_tokenize(sent)))
 
-with open('./ko2en/dev.ko' ,'wb') as f:
-    pickle.dump(ko_dev, f)
-
-with open('./ko2en/dev.en' ,'wb') as f:
-    pickle.dump(en_dev, f)
 
 '''
 sp = spm.SentencePieceProcessor()

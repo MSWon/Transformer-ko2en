@@ -15,7 +15,8 @@ class Encoder:
                  linear_value_dim=512,
                  model_dim=512,
                  ffn_dim=2048,
-                 dropout=0.1):
+                 dropout=0.1,
+                 isTrain=True):
 
         self.num_layers = num_layers
         self.num_heads = num_heads
@@ -24,6 +25,7 @@ class Encoder:
         self.model_dim = model_dim
         self.ffn_dim = ffn_dim
         self.dropout = dropout
+        self.isTrain = isTrain
         self.layer_norm = LayerNormalization(self.model_dim)
 
     def build(self, encoder_inputs, padding_bias, padding):
@@ -42,12 +44,11 @@ class Encoder:
     def _self_attention(self, q, k, v, bias):
         with tf.variable_scope("self-attention"):
             attention = Attention(num_heads=self.num_heads,
-                                    mode="normal-self-attention",
                                     linear_key_dim=self.linear_key_dim,
                                     linear_value_dim=self.linear_value_dim,
                                     model_dim=self.model_dim,
                                     dropout=self.dropout)
-            return attention.multi_head(q, k, v, bias)
+            return attention.multi_head(q, k, v, bias, self.isTrain)
 
     def _add_and_norm(self, x, sub_layer_x, num=0):
         with tf.variable_scope("add-and-norm-{}".format(num)):
@@ -58,4 +59,4 @@ class Encoder:
             ffn = FFN(w1_dim=self.ffn_dim,
                       w2_dim=self.model_dim,
                       dropout=self.dropout)
-            return ffn.dense_relu_dense(output, padding)
+            return ffn.dense_relu_dense(output, self.isTrain, padding)

@@ -15,7 +15,7 @@ class FFN:
         self.w2_dim = w2_dim
         self.dropout = dropout
 
-    def dense_relu_dense(self, inputs, padding=None):
+    def dense_relu_dense(self, inputs, isTrain, padding=None):
         
         """Return outputs of the feedforward network.
         
@@ -51,7 +51,8 @@ class FFN:
                 inputs = tf.expand_dims(inputs, axis=0)
             
         output = tf.layers.dense(inputs, self.w1_dim, activation=tf.nn.relu)
-        output = tf.nn.dropout(output, 1.0 - self.dropout)
+        if isTrain:
+            output = tf.nn.dropout(output, 1.0 - self.dropout)
         output = tf.layers.dense(output, self.w2_dim)
         if padding is not None:
             with tf.name_scope("re_add_padding"):

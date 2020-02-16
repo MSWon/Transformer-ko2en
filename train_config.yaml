@@ -1,0 +1,23 @@
+## Data config
+train_src_corpus_path: train.ko.bpe
+train_tgt_corpus_path: train.en.bpe
+test_src_corpus_path: tst2016.ko.bpe
+test_tgt_corpus_path: tst2016.en.bpe
+src_vocab_path: bpe.ko.vocab
+tgt_vocab_path: bpe.en.vocab
+## Training config
+training_steps: 10000
+max_len: 128
+batch_size: 16000
+bos_idx: 2
+eos_idx: 3
+n_gpus: 4
+## Model config 
+num_layers: 6
+num_heads: 8
+hidden_dim: 512
+linear_key_dim: 512
+linear_value_dim: 512
+ffn_dim: 2048
+dropout: 0.1
+vocab_size: 32000 
