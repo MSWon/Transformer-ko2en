@@ -13,6 +13,7 @@ batch_size: 16000
 bos_idx: 2
 eos_idx: 3
 n_gpus: 4
+model_path: transformer_ko2en.ckpt
 ## Model config 
 num_layers: 6
 num_heads: 8
