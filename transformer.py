@@ -21,8 +21,10 @@ class Transformer(object):
         self.n_gpus = hyp_args['n_gpus']
 
     def build_embed(self, inputs, isTrain):
-        batch_size = tf.shape(inputs)[0]
-        max_seq_length = tf.shape(inputs)[1]
+        '''
+        inputs : (batch_size, max_len)
+        '''
+        batch_size, max_seq_length = inputs.get_shape().as_list()
         # Positional Encoding
         with tf.variable_scope("Positional-encoding", reuse=tf.AUTO_REUSE):
             positional_encoded = model_utils.get_position_encoding(max_seq_length, self.hidden_dim)
@@ -68,7 +70,7 @@ class Transformer(object):
         dec_input_idx : (batch_size, dec_len)
         '''
         with tf.variable_scope("Decoder", reuse=tf.AUTO_REUSE):
-            dec_len = tf.shape(dec_input_idx)[1]
+            _, dec_len = dec_input_idx.get_shape().as_list()
             dec_bias = model_utils.get_decoder_self_attention_bias(dec_len)
             enc_dec_bias = model_utils.get_padding_bias(enc_input_idx)
             decoder_emb_inp = self.build_embed(dec_input_idx, isTrain)
@@ -84,7 +86,7 @@ class Transformer(object):
 
     def build_logits(self, decoder_outputs):
         with tf.variable_scope("Output_layer", reuse=tf.AUTO_REUSE):
-            dec_len = tf.shape(decoder_outputs)[1]
+            _, dec_len, _ = decoder_outputs.get_shape().as_list()
             decoder_outputs = tf.reshape(decoder_outputs, [-1, self.hidden_dim])
             dec_shared_weights = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='Decoder/Embeddings/Weights')[0]
             logits = tf.matmul(decoder_outputs, dec_shared_weights, transpose_b=True)
@@ -121,8 +123,7 @@ class Transformer(object):
                                      initializer=tf.constant_initializer(0.0), trainable=False)
 
         tower_grads = []
-
-        total_batch = tf.shape(src['input_idx'])[0]
+        total_batch, _ = src['input_idx'].get_shape().as_list()
         batch_per_gpu = total_batch // self.n_gpus
 
         with tf.variable_scope(tf.get_variable_scope()):
@@ -167,7 +168,7 @@ class Transformer(object):
         enc_input_idx : (batch_size, enc_len)
         dec_input_idx : (batch_size, dec_len)
         '''
-        batch_size = tf.shape(enc_input_idx)[0]
+        batch_size, _ = enc_input_idx.get_shape().as_list()
         ## Initial values for while loop
         init_timestep = tf.constant(0, dtype=tf.int32)
         init_input = tf.fill([batch_size, 1], self.bos_idx)
