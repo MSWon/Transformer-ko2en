@@ -54,7 +54,7 @@ class Trainer(object):
         with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
             sess.run(tf.global_variables_initializer())
             if(ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path)):
-                saver.restore(sess, "./model" + self.model_path)
+                saver.restore(sess, "./model/" + self.model_path)
                 print("Model loaded!")
 
             sess.run(self.train_init_op)
@@ -91,7 +91,7 @@ class Trainer(object):
 
                     test_loss = test_loss_ / n_test_step
                     if test_loss < best_loss:
-                        save_path = saver.save(sess, "./model" + self.model_path)
+                        save_path = saver.save(sess, "./model/" + self.model_path)
                         best_loss = test_loss
 
                     sess.run(self.train_init_op)
