@@ -49,7 +49,7 @@ class Trainer(object):
     def train(self, training_steps):
         print("Now training")
         saver = tf.train.Saver()
-        ckpt = tf.train.get_checkpoint_state("./model" + self.model_path)
+        ckpt = tf.train.get_checkpoint_state("./model")
 
         with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
             sess.run(tf.global_variables_initializer())
