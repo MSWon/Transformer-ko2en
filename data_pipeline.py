@@ -4,6 +4,7 @@ _buffer_size = 100000
 _bucket_size = 10
 
 def get_vocab(vocab_path, isTF=True):
+    vocab_path = "./data" + vocab_path
     if isTF:
         vocab_path_tensor = tf.constant(vocab_path)
         tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, vocab_path_tensor)
