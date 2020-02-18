@@ -30,7 +30,7 @@ class Attention:
     def multi_head(self, q, k, v, bias, isTrain):
         q, k, v = self._linear_projection(q, k, v)
         qs, ks, vs = self._split_heads(q, k, v)
-        outputs = self._scaled_dot_product(qs, ks, vs, bias)
+        outputs = self._scaled_dot_product(qs, ks, vs, bias, isTrain)
         output = self._concat_heads(outputs)
         output = tf.layers.dense(output, self.model_dim, use_bias=False)
         if isTrain:
