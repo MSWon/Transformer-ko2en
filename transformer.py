@@ -97,7 +97,7 @@ class Transformer(object):
         return tf.reduce_sum(cross_entropy * self.masks) / (tf.reduce_sum(self.masks) + 1e-10)
 
     def label_smoothing(self, inputs, epsilon=0.1):
-        V = tf.shape(inputs)[-1] # number of channels
+        V = inputs.get_shape().as_list()[-1] # number of channels
         return ((1 - epsilon) * inputs) + (epsilon / V)
 
     def noam_scheme(self, d_model, global_step, warmup_steps=4000):
@@ -177,7 +177,7 @@ class Transformer(object):
         ## Greedy Decoder
         def cond(timestep, input, output, output_array, loss_array):
             ''' Ends 'while-loop' when it returns False '''
-            return tf.logical_and(tf.less(timestep, self.max_len), tf.not_equal(output, self.eos_id))
+            return tf.logical_and(tf.less(timestep, self.max_len), tf.not_equal(output, self.eos_idx))
         def body(timestep, input, output, output_array, loss_array):
             ''' Main function of the while loop '''
             decoder_outputs = self.build_decoder(enc_input_idx, encoder_outputs, input, isTrain=False)
