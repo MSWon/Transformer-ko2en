@@ -45,8 +45,7 @@ class Attention:
 
     def _split_heads(self, q, k, v):        
         def split_last_dimension_then_transpose(tensor, num_heads, dim):
-            t_shape = tensor.get_shape().as_list()
-            length = t_shape[1]
+            length = tf.shape(tensor)[1]
             depth = (dim // num_heads)
             tensor = tf.reshape(tensor, [-1, length, num_heads, depth])
             return tf.transpose(tensor, [0, 2, 1, 3]) ## [batch_size, num_heads, length, depth]
@@ -67,7 +66,8 @@ class Attention:
         return attention_output
 
     def _concat_heads(self, outputs):
-        t_shape = outputs.get_shape().as_list()
-        num_heads, length, depth = t_shape[1:]
+        num_heads = tf.shape(outputs)[1]
+        length = tf.shape(outputs)[2]
+        depth = tf.shape(outputs)[3]
         outputs = tf.transpose(outputs, [0, 2, 1, 3]) ## [batch, length, num_heads, depth]
         return tf.reshape(outputs, [-1, length, num_heads*depth])

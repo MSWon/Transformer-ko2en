@@ -1,5 +1,4 @@
 import tensorflow as tf
-
 from attention import Attention
 from layer import FFN
 from model_utils import LayerNormalization

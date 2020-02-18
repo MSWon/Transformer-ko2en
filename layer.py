@@ -32,10 +32,7 @@ class FFN:
         """           
         batch_size = tf.shape(inputs)[0]
         length = tf.shape(inputs)[1]
-        '''
-        t_shape = inputs.get_shape().as_list()
-        length, model_dim = t_shape[1:]
-        '''
+
         if padding is not None:
             with tf.name_scope("remove_padding"):
                 # Flatten padding to [batch_size*length]

@@ -6,7 +6,6 @@ Created on Mon Jul 29 11:47:27 2019
 """
 
 import math
-
 import numpy as np
 import tensorflow as tf
 
@@ -16,13 +15,33 @@ _NEG_INF_FP32 = -1e9
 _NEG_INF_FP16 = np.finfo(np.float16).min
 
 
-def get_position_encoding(sentence_length, dim, dtype=tf.float32):
-    pos_enc = np.array([[pos / np.power(10000., 2. * (i // 2) / dim) for i in range(dim)] for pos in range(sentence_length)]) # [seq_len, d_model]    
-    # Apply the cosine to even columns and sin to odds.
-    pos_enc[:, 0::2] = np.sin(pos_enc[:, 0::2])  # dim 2i
-    pos_enc[:, 1::2] = np.cos(pos_enc[:, 1::2])  # dim 2i+1
-    return tf.convert_to_tensor(pos_enc, dtype=dtype)
-
+def get_position_encoding(
+    length, hidden_size, min_timescale=1.0, max_timescale=1.0e4):
+  """Return positional encoding.
+  Calculates the position encoding as a mix of sine and cosine functions with
+  geometrically increasing wavelengths.
+  Defined and formulized in Attention is All You Need, section 3.5.
+  Args:
+    length: Sequence length.
+    hidden_size: Size of the
+    min_timescale: Minimum scale that will be applied at each position
+    max_timescale: Maximum scale that will be applied at each position
+  Returns:
+    Tensor with shape [length, hidden_size]
+  """
+  # We compute the positional encoding in float32 even if the model uses
+  # float16, as many of the ops used, like log and exp, are numerically unstable
+  # in float16.
+  position = tf.cast(tf.range(length), tf.float32)
+  num_timescales = hidden_size // 2
+  log_timescale_increment = (
+      math.log(float(max_timescale) / float(min_timescale)) /
+      (tf.cast(num_timescales, tf.float32) - 1))
+  inv_timescales = min_timescale * tf.exp(
+      tf.cast(tf.range(num_timescales), tf.float32) * -log_timescale_increment)
+  scaled_time = tf.expand_dims(position, 1) * tf.expand_dims(inv_timescales, 0)
+  signal = tf.concat([tf.sin(scaled_time), tf.cos(scaled_time)], axis=1)
+  return signal
 
 def get_decoder_self_attention_bias(length, dtype=tf.float32):
   """Calculate bias for decoder that maintains model's autoregressive property.
