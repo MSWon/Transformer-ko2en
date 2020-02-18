@@ -24,7 +24,6 @@ class Transformer(object):
         '''
         inputs : (batch_size, max_len)
         '''
-        batch_size = tf.shape(inputs)[0]
         max_seq_length = tf.shape(inputs)[1]
         # Positional Encoding
         with tf.variable_scope("Positional-encoding", reuse=tf.AUTO_REUSE):

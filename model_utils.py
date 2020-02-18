@@ -95,6 +95,17 @@ def get_padding_bias(x):
         tf.expand_dims(attention_bias, axis=1), axis=1)
   return attention_bias
 
+def shape_list(x):
+  static = x.get_shape().as_list()
+  shape = tf.shape(x)
+
+  result = []
+  for i in range(len(static)):
+    dim = static[i]
+    if dim is None:
+      dim = shape[i]
+    result.append(dim)
+  return result
 
 class LayerNormalization(tf.layers.Layer):
   """Applies layer normalization."""

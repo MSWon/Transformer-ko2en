@@ -6,7 +6,7 @@ Created on Tue Jul 30 13:28:04 2019
 """
 
 import tensorflow as tf
-
+import model_utils
 
 class Attention:
     """Attention class"""
@@ -66,8 +66,6 @@ class Attention:
         return attention_output
 
     def _concat_heads(self, outputs):
-        num_heads = tf.shape(outputs)[1]
-        length = tf.shape(outputs)[2]
-        depth = tf.shape(outputs)[3]
+        _, num_heads, length, depth = model_utils.shape_list(outputs)
         outputs = tf.transpose(outputs, [0, 2, 1, 3]) ## [batch, length, num_heads, depth]
         return tf.reshape(outputs, [-1, length, num_heads*depth])
