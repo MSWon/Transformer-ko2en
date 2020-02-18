@@ -34,7 +34,7 @@ class Transformer(object):
             self.embedding_weights = tf.get_variable('Weights', [self.vocab_size, self.hidden_dim],
                                                      dtype=tf.float32,
                                                      initializer=tf.random_normal_initializer(
-                                                         0., self.hidden_size ** -0.5))
+                                                         0., self.hidden_dim ** -0.5))
             mask = tf.to_float(tf.not_equal(inputs, 0))
             word_emb = tf.nn.embedding_lookup(self.embedding_weights, inputs)  ## batch_size, length, dim
             word_emb *= tf.expand_dims(mask, -1)  ## zeros out masked positions
