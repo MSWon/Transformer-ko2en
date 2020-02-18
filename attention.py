@@ -66,6 +66,6 @@ class Attention:
         return attention_output
 
     def _concat_heads(self, outputs):
-        _, num_heads, length, depth = model_utils.shape_list(outputs)
+        _, num_heads, length, depth = model_utils.get_shape_list(outputs)
         outputs = tf.transpose(outputs, [0, 2, 1, 3]) ## [batch, length, num_heads, depth]
         return tf.reshape(outputs, [-1, length, num_heads*depth])

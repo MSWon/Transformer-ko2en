@@ -95,7 +95,7 @@ def get_padding_bias(x):
         tf.expand_dims(attention_bias, axis=1), axis=1)
   return attention_bias
 
-def shape_list(x):
+def get_shape_list(x):
   static = x.get_shape().as_list()
   shape = tf.shape(x)
 
