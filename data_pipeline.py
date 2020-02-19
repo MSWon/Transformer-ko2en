@@ -20,7 +20,7 @@ def get_vocab(vocab_path, isTF=True):
     return vocab_dict
 
 def idx2bpeword(vocab_dict, idx):
-    word_list = map(lambda x: vocab_dict[x], idx)
+    word_list = list(map(lambda x: vocab_dict[x], idx))
     return " ".join(word_list)
 
 def train_dataset_fn(src_corpus_path, tgt_corpus_path,

@@ -91,7 +91,8 @@ class Transformer(object):
         return logits
 
     def build_loss(self, dec_output_idx, dec_len, logits):
-        self.masks = tf.sequence_mask(lengths=dec_len, maxlen=self.max_len, dtype=tf.float32)
+        max_len = tf.shape(dec_output_idx)[1]
+        self.masks = tf.sequence_mask(lengths=dec_len, maxlen=max_len, dtype=tf.float32)
         smoothed_label = self.label_smoothing(tf.one_hot(dec_output_idx, depth=self.vocab_size))
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=smoothed_label, logits=logits)
         return tf.reduce_sum(cross_entropy * self.masks) / (tf.reduce_sum(self.masks) + 1e-10)
@@ -177,28 +178,36 @@ class Transformer(object):
         ## Greedy Decoder
         def cond(timestep, input, output, output_array, loss_array):
             ''' Ends 'while-loop' when it returns False '''
-            return tf.logical_and(tf.less(timestep, self.max_len), tf.not_equal(output, self.eos_idx))
+            return tf.logical_and(tf.less(timestep, self.max_len), tf.reduce_all(tf.not_equal(output, self.eos_idx)))
         def body(timestep, input, output, output_array, loss_array):
             ''' Main function of the while loop '''
             decoder_outputs = self.build_decoder(enc_input_idx, encoder_outputs, input, isTrain=False)
             decoder_logits = self.build_logits(decoder_outputs)[:,timestep,:] ## (N, vocab_size)
-            next_output = tf.argmax(decoder_logits, axis=1) ## (N, )
-            next_output_array = output_array.write(next_output)
+            next_output = tf.to_int32(tf.argmax(decoder_logits, axis=1)) ## (N, )
+            next_output_array = output_array.write(timestep, next_output)
             next_input = tf.concat([input, next_output[:,None]], axis=1) ## (N, timestep+1)
             smoothed_label = self.label_smoothing(tf.one_hot(dec_output_idx[:,timestep], depth=self.vocab_size)) ## (N, vocab_size)
             batch_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=smoothed_label,
                                                                                    logits=decoder_logits))
-            next_loss_array = loss_array.write(batch_loss)
+            next_loss_array = loss_array.write(timestep, batch_loss)
             next_timestep = timestep + 1
             return next_timestep, next_input, next_output, next_output_array, next_loss_array
 
+        shape_invariants=[
+            tf.TensorShape([]),                 ## timestep
+            tf.TensorShape([None, None]), ## input
+            tf.TensorShape([None]),       ## output
+            tf.TensorShape(None),               ## output_array
+            tf.TensorShape(None)                ## loss_array
+            ]
         _, _, _, decoded_array, loss_array = tf.while_loop(cond,
                                                            body,
                                                            [init_timestep,
                                                             init_input,
                                                             init_output,
                                                             init_output_array,
-                                                            init_loss_array])
+                                                            init_loss_array],
+                                                           shape_invariants=shape_invariants)
         decoded_idx = tf.squeeze(decoded_array.stack()) ## (N, )
         total_loss = tf.reduce_mean(loss_array.stack()) ## ()
         return decoded_idx, total_loss
