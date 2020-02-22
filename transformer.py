@@ -208,7 +208,7 @@ class Transformer(object):
                                                             init_output_array,
                                                             init_loss_array],
                                                            shape_invariants=shape_invariants)
-        decoded_idx = tf.squeeze(decoded_array.stack()) ## (N, )
+        decoded_idx = tf.squeeze(decoded_array.stack(), axis=1) ## (N, )
         total_loss = tf.reduce_mean(loss_array.stack()) ## ()
         return decoded_idx, total_loss
 
