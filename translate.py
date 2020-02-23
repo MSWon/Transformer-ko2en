@@ -27,11 +27,11 @@ class Translate(object):
         self.tgt_sp = spm.SentencePieceProcessor()
         self.tgt_sp.Load(self.tgt_bpe_model_path)
 
-        infer_dataset = infer_dataset_fn(self.src_vocab_path, self.max_len, 1)
+        infer_dataset, self.input_placeholder = infer_dataset_fn(self.src_vocab_path, self.max_len, 1)
 
         iters = tf.data.Iterator.from_structure(infer_dataset.output_types,
                                                 infer_dataset.output_shapes)
-        src, self.input_placeholder = iters.get_next()
+        src = iters.get_next()
 
         self.tgt_vocab_dict = get_vocab(self.tgt_vocab_path, False)
 
