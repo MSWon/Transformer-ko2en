@@ -1,4 +1,5 @@
 import tensorflow as tf
+import sentencepiece as spm
 from transformer import Transformer
 from data_pipeline import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpeword
 
@@ -12,9 +13,14 @@ class Trainer(object):
         self.test_tgt_corpus_path = hyp_args["test_tgt_corpus_path"]
         self.src_vocab_path = hyp_args["src_vocab_path"]
         self.tgt_vocab_path = hyp_args["tgt_vocab_path"]
+        self.src_bpe_model_path = hyp_args["src_bpe_model_path"]
+        self.tgt_bpe_model_path = hyp_args["tgt_bpe_model_path"]
         self.max_len = hyp_args["max_len"]
         self.batch_size = hyp_args["batch_size"]
         self.model_path = hyp_args["model_path"]
+
+        self.tgt_sp = spm.SentencePieceProcessor()
+        self.tgt_sp.Load(self.tgt_bpe_model_path)
 
         train_dataset = train_dataset_fn(self.train_src_corpus_path,
                                          self.train_tgt_corpus_path,
@@ -83,7 +89,8 @@ class Trainer(object):
                                 batch_test_loss, idx = sess.run([self.test_loss,
                                                                  self.decoded_idx])
                                 test_loss_ += batch_test_loss
-                                decoded_word = idx2bpeword(self.tgt_vocab_dict, idx)
+                                decoded_word = idx2bpeword(self.tgt_vocab_dict, idx,
+                                                           self.tgt_sp)
                                 f.write(decoded_word + "\n")
 
                         except tf.errors.OutOfRangeError:

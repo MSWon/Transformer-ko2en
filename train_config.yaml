@@ -1,10 +1,12 @@
 ## Data config
-train_src_corpus_path: train.ko.bpe
-train_tgt_corpus_path: train.en.bpe
-test_src_corpus_path: tst2016.ko.bpe
-test_tgt_corpus_path: tst2016.en.bpe
-src_vocab_path: bpe.ko.vocab
-tgt_vocab_path: bpe.en.vocab
+train_src_corpus_path: ./data/train.ko.bpe
+train_tgt_corpus_path: ./data/train.en.bpe
+test_src_corpus_path: ./data/tst2016.ko.bpe
+test_tgt_corpus_path: ./data/tst2016.en.bpe
+src_vocab_path: ./data/bpe.ko.vocab
+tgt_vocab_path: ./data/bpe.en.vocab
+src_bpe_model_path: ./data/bpe.ko.model
+tgt_bpe_model_path: ./data/bpe.en.model
 ## Training config
 training_steps: 10000
 warmup_step: 4000

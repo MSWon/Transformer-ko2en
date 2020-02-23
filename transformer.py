@@ -195,8 +195,8 @@ class Transformer(object):
 
         shape_invariants=[
             tf.TensorShape([]),                 ## timestep
-            tf.TensorShape([None, None]), ## input
-            tf.TensorShape([None]),       ## output
+            tf.TensorShape([None, None]),       ## input
+            tf.TensorShape([None]),             ## output
             tf.TensorShape(None),               ## output_array
             tf.TensorShape(None)                ## loss_array
             ]
@@ -212,3 +212,44 @@ class Transformer(object):
         total_loss = tf.reduce_mean(loss_array.stack()) ## ()
         return decoded_idx, total_loss
 
+    def infer_fn(self, enc_input_idx):
+        '''
+        enc_input_idx : (batch_size, enc_len)
+        '''
+        batch_size = tf.shape(enc_input_idx)[0]
+        ## Initial values for while loop
+        init_timestep = tf.constant(0, dtype=tf.int32)
+        init_input = tf.fill([batch_size, 1], self.bos_idx)
+        init_output = tf.constant([], dtype=tf.int32)
+        init_output_array = tf.TensorArray(dtype=tf.int32, size=0, dynamic_size=True)
+        ## Encoder
+        encoder_outputs = self.build_encoder(enc_input_idx, isTrain=False)
+        ## Greedy Decoder
+        def cond(timestep, input, output, output_array):
+            ''' Ends 'while-loop' when it returns False '''
+            return tf.logical_and(tf.less(timestep, self.max_len), tf.reduce_all(tf.not_equal(output, self.eos_idx)))
+        def body(timestep, input, output, output_array):
+            ''' Main function of the while loop '''
+            decoder_outputs = self.build_decoder(enc_input_idx, encoder_outputs, input, isTrain=False)
+            decoder_logits = self.build_logits(decoder_outputs)[:,timestep,:] ## (N, vocab_size)
+            next_output = tf.to_int32(tf.argmax(decoder_logits, axis=1)) ## (N, )
+            next_output_array = output_array.write(timestep, next_output)
+            next_input = tf.concat([input, next_output[:,None]], axis=1) ## (N, timestep+1)
+            next_timestep = timestep + 1
+            return next_timestep, next_input, next_output, next_output_array
+
+        shape_invariants=[
+            tf.TensorShape([]),                 ## timestep
+            tf.TensorShape([None, None]),       ## input
+            tf.TensorShape([None]),             ## output
+            tf.TensorShape(None)                ## output_array
+        ]
+        _, _, _, decoded_array = tf.while_loop(cond,
+                                               body,
+                                               [init_timestep,
+                                                init_input,
+                                                init_output,
+                                                init_output_array],
+                                               shape_invariants=shape_invariants)
+        decoded_idx = tf.squeeze(decoded_array.stack(), axis=1) ## (N, )
+        return decoded_idx

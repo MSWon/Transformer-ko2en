@@ -4,7 +4,6 @@ _buffer_size = 100000
 _bucket_size = 10
 
 def get_vocab(vocab_path, isTF=True):
-    vocab_path = "./data/" + vocab_path
     if isTF:
         vocab_path_tensor = tf.constant(vocab_path)
         tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, vocab_path_tensor)
@@ -19,9 +18,9 @@ def get_vocab(vocab_path, isTF=True):
                 vocab_dict[len(vocab_dict)] = vocab.strip()
     return vocab_dict
 
-def idx2bpeword(vocab_dict, idx):
+def idx2bpeword(vocab_dict, idx, sp):
     word_list = list(map(lambda x: vocab_dict[x], idx))
-    return " ".join(word_list)
+    return sp.DecodePieces(word_list)
 
 def train_dataset_fn(src_corpus_path, tgt_corpus_path,
                      src_vocab_path, tgt_vocab_path, max_len, batch_size):
@@ -88,18 +87,14 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
     dataset = dataset.prefetch(buffer_size=batch_size)
     return dataset
 
-def infer_dataset_fn(src_vocab_path, tgt_vocab_path, max_len, batch_size):
+def infer_dataset_fn(src_vocab_path, max_len, batch_size):
 
     tf_vocab_src = get_vocab(src_vocab_path)
-
     input_src = tf.placeholder(shape=(1, None), dtype=tf.string)
     dataset_src = tf.data.Dataset.from_tensor_slices(input_src)
     dataset_src = dataset_src.map(lambda token: {"input_idx": tf_vocab_src.lookup(token),
                                                  "len": tf.shape(token)[0]})
 
-    dataset_src = dataset_src.padded_batch(1, padded_shapes=({"input_idx": [max_len], "len": []}))
-
-    tf_vocab_tgt = get_vocab(tgt_vocab_path)
-
-    return dataset_src
+    dataset_src = dataset_src.padded_batch(batch_size, padded_shapes=({"input_idx": [max_len], "len": []}))
+    return dataset_src, input_src
 
