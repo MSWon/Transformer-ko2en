@@ -62,7 +62,7 @@ class Translate(object):
         while True:
             input_sent = input("Input Korean sent : ")
             input_sent = self.prepro(input_sent)
-            input_sent = " ".join(self.src_sp.EncodeAsPieces(input_sent))
+            input_sent = [self.src_sp.EncodeAsPieces(input_sent)]
 
             self.sess.run(self.infer_init_op,
                           feed_dict={self.input_placeholder:input_sent})
