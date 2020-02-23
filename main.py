@@ -7,8 +7,6 @@ Created on Tue Jul 30 13:57:59 2019
 
 import argparse
 import yaml
-from trainer import Trainer
-from translate import Translate
 
 if __name__ == '__main__':
 
@@ -23,11 +21,13 @@ if __name__ == '__main__':
         print('{} : {}'.format(key, value))
     print('========================')
     if args.mode == "train":
+        from trainer import Trainer
         ## Build model
         model = Trainer(hyp_args)
         ## Train model
         model.train(hyp_args["training_steps"])
     elif args.mode == "infer":
+        from translate import Translate
         ## Build model
         model = Translate(hyp_args)
         ## Infer model
