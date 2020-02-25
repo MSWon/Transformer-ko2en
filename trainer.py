@@ -2,7 +2,7 @@ import tensorflow as tf
 import sentencepiece as spm
 from transformer import Transformer
 from data_pipeline import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpeword
-
+from model_utils import calc_bleu
 
 class Trainer(object):
 
@@ -50,6 +50,8 @@ class Trainer(object):
                                                         global_step, hyp_args["warmup_step"])
 
         self.decoded_idx, self.test_loss = model.test_fn(src["input_idx"], tgt["output_idx"])
+        self.train_loss_graph = tf.placeholder(shape=None, dtype=tf.float32)
+        tf.summary.scalar("train_loss", self.train_loss_graph)
         print("Done")
 
     def train(self, training_steps):
@@ -68,6 +70,8 @@ class Trainer(object):
             n_train_step = 0
             train_loss_, test_loss_ = 0., 0.
             best_loss = 1e8
+            merged = tf.summary.merge_all()
+            writer = tf.summary.FileWriter('./tensorboard/graph', sess.graph)
 
             for step in range(training_steps):
                 n_train_step += 1
@@ -78,11 +82,11 @@ class Trainer(object):
 
                 print("step : {} train_loss : {}".format(step+1, train_loss))
 
-                if step % 100 == 0 and step > 0:
+                if step % 10000 == 0 and step > 0:
                     print("Now for test data")
                     sess.run(self.test_init_op)
                     n_test_step = 0
-                    with open("test_output_{}.txt".format(step), "w") as f:
+                    with open("test_output_{}.en".format(step), "w") as f:
                         try:
                             while True:
                                 n_test_step += 1
@@ -96,7 +100,12 @@ class Trainer(object):
                         except tf.errors.OutOfRangeError:
                             pass
 
+                    test_bleu = calc_bleu(self.test_tgt_corpus_path, "test_output_{}.en".format(step))
                     test_loss = test_loss_ / n_test_step
+                    summary = sess.run(merged, feed_dict={self.test_loss_graph: test_loss,
+                                                          self.bleu_score_graph: test_bleu})
+                    writer.add(summary, step)
+
                     if test_loss < best_loss:
                         save_path = saver.save(sess, "./model/" + self.model_path)
                         best_loss = test_loss

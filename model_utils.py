@@ -8,6 +8,8 @@ Created on Mon Jul 29 11:47:27 2019
 import math
 import numpy as np
 import tensorflow as tf
+import re
+import os
 
 # Very low numbers to represent -infinity. We do not actually use -Inf, since we
 # want to be able to multiply these values by zero to get zero. (-Inf * 0 = NaN)
@@ -106,6 +108,18 @@ def get_shape_list(x):
       dim = shape[i]
     result.append(dim)
   return result
+
+def calc_bleu(ref, translation):
+  '''
+  ref: reference file path
+  translation: model output file path
+  '''
+  get_bleu_score = "perl multi-bleu.perl {} < {} > {}".format(ref, translation, "temp")
+  os.system(get_bleu_score)
+  bleu_score_report = open("temp", "r").read()
+  score = re.findall("BLEU = ([^,]+)", bleu_score_report)[0]
+  os.remove("temp")
+  return score
 
 class LayerNormalization(tf.layers.Layer):
   """Applies layer normalization."""
