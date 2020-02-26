@@ -50,14 +50,21 @@ class Trainer(object):
                                                         global_step, hyp_args["warmup_step"])
 
         self.decoded_idx, self.test_loss = model.test_fn(src["input_idx"], tgt["output_idx"])
+        ## for tensorboard
         self.train_loss_graph = tf.placeholder(shape=None, dtype=tf.float32)
-        tf.summary.scalar("train_loss", self.train_loss_graph)
+        self.test_loss_graph = tf.placeholder(shape=None, dtype=tf.float32)
+        self.test_bleu_graph = tf.placeholder(shape=None, dtype=tf.float32)
         print("Done")
 
     def train(self, training_steps):
         print("Now training")
         saver = tf.train.Saver()
         ckpt = tf.train.get_checkpoint_state("./model")
+
+        summary_train_loss = tf.summary.scalar("train_loss", self.train_loss_graph)
+        summary_test_loss = tf.summary.scalar("test_loss", self.test_loss_graph)
+        summary_test_bleu = tf.summary.scalar("test_bleu", self.test_bleu_graph)
+        merged = tf.summary.merged([summary_test_loss, summary_test_bleu])
 
         with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
             sess.run(tf.global_variables_initializer())
@@ -70,7 +77,6 @@ class Trainer(object):
             n_train_step = 0
             train_loss_, test_loss_ = 0., 0.
             best_loss = 1e8
-            merged = tf.summary.merge_all()
             writer = tf.summary.FileWriter('./tensorboard/graph', sess.graph)
 
             for step in range(training_steps):
@@ -81,6 +87,11 @@ class Trainer(object):
                 train_loss = train_loss_ / n_train_step
 
                 print("step : {} train_loss : {}".format(step+1, train_loss))
+
+                if step % 100 == 0 and step > 0:
+                    summary = sess.run(summary_train_loss,
+                                       feed_dict={self.train_loss_graph:train_loss})
+                    writer.add(summary, step)
 
                 if step % 10000 == 0 and step > 0:
                     print("Now for test data")
