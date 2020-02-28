@@ -73,7 +73,8 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
     with tf.device("/cpu:0"):
         tf_vocab_src = get_vocab(src_vocab_path)
         dataset_src = tf.data.TextLineDataset(src_corpus_path)
-        dataset_src = dataset_src.map(lambda token: tf.string_split([token]).values, num_parallel_calls=_thread_num)
+        dataset_src = dataset_src.map(lambda token: tf.concat([tf.string_split([token]).values, ["</s>"]], axis=0),
+                                      num_parallel_calls=_thread_num)
         dataset_src = dataset_src.map(lambda token: {"input_idx": tf_vocab_src.lookup(token),
                                                      "len": tf.shape(token)[0]},
                                                      num_parallel_calls=_thread_num)
@@ -100,10 +101,10 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
     return dataset
 
 def infer_dataset_fn(src_vocab_path, max_len, batch_size):
-
     tf_vocab_src = get_vocab(src_vocab_path)
     input_src = tf.placeholder(shape=(1, None), dtype=tf.string)
     dataset_src = tf.data.Dataset.from_tensor_slices(input_src)
+    dataset_src = dataset_src.map(lambda token: tf.concat([token, ["</s>"]], axis=0))
     dataset_src = dataset_src.map(lambda token: {"input_idx": tf_vocab_src.lookup(token),
                                                  "len": tf.shape(token)[0]})
 
