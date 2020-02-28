@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 import sentencepiece as spm
 from transformer import Transformer
 from data_pipeline import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpeword
@@ -60,11 +61,11 @@ class Trainer(object):
         print("Now training")
         saver = tf.train.Saver()
         ckpt = tf.train.get_checkpoint_state("./model")
-
+        os.makedirs("./decoded")
         summary_train_loss = tf.summary.scalar("train_loss", self.train_loss_graph)
         summary_test_loss = tf.summary.scalar("test_loss", self.test_loss_graph)
         summary_test_bleu = tf.summary.scalar("test_bleu", self.test_bleu_graph)
-        merged = tf.summary.merged([summary_test_loss, summary_test_bleu])
+        merged = tf.summary.merge([summary_test_loss, summary_test_bleu])
 
         with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
             sess.run(tf.global_variables_initializer())
@@ -91,31 +92,30 @@ class Trainer(object):
                 if step % 100 == 0 and step > 0:
                     summary = sess.run(summary_train_loss,
                                        feed_dict={self.train_loss_graph:train_loss})
-                    writer.add(summary, step)
-
-                if step % 10000 == 0 and step > 0:
+                    writer.add_summary(summary, step)
+                
+                if step % 50000 == 0 and step > 0:
                     print("Now for test data")
                     sess.run(self.test_init_op)
                     n_test_step = 0
-                    with open("test_output_{}.en".format(step), "w") as f:
+                    with open("./decoded/test_output_{}.en".format(step), "w") as f:
                         try:
                             while True:
                                 n_test_step += 1
                                 batch_test_loss, idx = sess.run([self.test_loss,
                                                                  self.decoded_idx])
                                 test_loss_ += batch_test_loss
-                                decoded_word = idx2bpeword(self.tgt_vocab_dict, idx,
-                                                           self.tgt_sp)
+                                decoded_word = idx2bpeword(self.tgt_vocab_dict, idx)
                                 f.write(decoded_word + "\n")
 
                         except tf.errors.OutOfRangeError:
                             pass
 
-                    test_bleu = calc_bleu(self.test_tgt_corpus_path, "test_output_{}.en".format(step))
+                    test_bleu = calc_bleu(self.test_tgt_corpus_path, "./decoded/test_output_{}.en".format(step))
                     test_loss = test_loss_ / n_test_step
                     summary = sess.run(merged, feed_dict={self.test_loss_graph: test_loss,
-                                                          self.bleu_score_graph: test_bleu})
-                    writer.add(summary, step)
+                                                          self.test_bleu_graph: test_bleu})
+                    writer.add_summary(summary, step)
 
                     if test_loss < best_loss:
                         save_path = saver.save(sess, "./model/" + self.model_path)

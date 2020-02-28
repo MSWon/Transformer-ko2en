@@ -3,7 +3,7 @@ import sentencepiece as spm
 import re
 import os
 from transformer import Transformer
-from data_pipeline import infer_dataset_fn, get_vocab, idx2bpeword
+from data_pipeline import infer_dataset_fn, get_vocab, idx2plainword
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
@@ -67,7 +67,7 @@ class Translate(object):
             self.sess.run(self.infer_init_op,
                           feed_dict={self.input_placeholder:input_sent})
             idx = self.sess.run(self.decoded_idx)
-            decoded_word = idx2bpeword(self.tgt_vocab_dict, idx,
+            decoded_word = idx2plainword(self.tgt_vocab_dict, idx,
                                        self.tgt_sp)
             print(decoded_word)
 

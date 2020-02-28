@@ -19,7 +19,11 @@ def get_vocab(vocab_path, isTF=True):
                 vocab_dict[len(vocab_dict)] = vocab.strip()
     return vocab_dict
 
-def idx2bpeword(vocab_dict, idx, sp):
+def idx2bpeword(vocab_dict, idx):
+    word_list = list(map(lambda x: vocab_dict[x], idx))
+    return " ".join(word_list)
+
+def idx2plainword(vocab_dict, idx, sp):
     word_list = list(map(lambda x: vocab_dict[x], idx))
     return sp.DecodePieces(word_list)
 
@@ -59,7 +63,7 @@ def train_dataset_fn(src_corpus_path, tgt_corpus_path,
                              ))
 
       # Prefetch the next element to improve speed of input pipeline.
-      dataset = dataset.apply(tf.data.experimental.prefetch_to_device("/gpu:0", 3))
+      dataset = dataset.prefetch(batch_size)
   return dataset
 
 
@@ -91,7 +95,7 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
                                                                    "output_idx": [max_len], "len": []}))
 
         # Prefetch the next element to improve speed of input pipeline.
-        dataset = dataset.apply(tf.data.experimental.prefetch_to_device("/gpu:0", 3))
+        dataset = dataset.prefetch(batch_size)
     return dataset
 
 def infer_dataset_fn(src_vocab_path, max_len, batch_size):
