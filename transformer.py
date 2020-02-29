@@ -111,7 +111,7 @@ class Transformer(object):
         step = tf.cast(global_step + 1, dtype=tf.float32)
         return d_model ** (-0.5) * tf.minimum(step * warmup_steps ** -1.5, step ** -0.5)
 
-    def build_opt(self, src, tgt, d_model, global_step, warmup_steps=4000):
+    def build_opt(self, features, d_model, global_step, warmup_steps=4000):
         # define optimizer
         learning_rate = self.noam_scheme(d_model, global_step, warmup_steps)
         opt = tf.contrib.opt.LazyAdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.98, epsilon=1e-9)
@@ -121,7 +121,7 @@ class Transformer(object):
                                      initializer=tf.constant_initializer(0.0), trainable=False)
 
         tower_grads = []
-        total_batch = tf.shape(src['input_idx'])[0]
+        total_batch = tf.shape(features['src_input_idx'])[0]
         batch_per_gpu = total_batch // self.n_gpus
 
         with tf.variable_scope(tf.get_variable_scope()):
@@ -132,10 +132,10 @@ class Transformer(object):
                     # calculate the loss for one model replica
                     start = tf.to_int32(batch_per_gpu * k)
                     end = tf.to_int32(batch_per_gpu * (k + 1)) if k<self.n_gpus-1 else total_batch
-                    enc_input_idx = src['input_idx'][start:end]
-                    dec_input_idx = tgt['input_idx'][start:end]
-                    dec_output_idx = tgt['output_idx'][start:end]
-                    dec_idx_len = tgt['len'][start:end]
+                    enc_input_idx = features['src_input_idx'][start:end]
+                    dec_input_idx = features['tgt_input_idx'][start:end]
+                    dec_output_idx = features['tgt_output_idx'][start:end]
+                    dec_idx_len = features['tgt_len'][start:end]
                     train_logits = self.train_fn(enc_input_idx, dec_input_idx)
                     loss = self.build_loss(dec_output_idx, dec_idx_len, train_logits)
                     # Reuse variables for the next tower.

@@ -57,7 +57,7 @@ def train_dataset_fn(src_corpus_path, tgt_corpus_path,
                                 tf.to_int32(src),
                                 tf.to_int32(tgt)
                                 ),
-                                num_parallel_calls=self.thread_num
+                                num_parallel_calls=_thread_num
                             )
 
       dataset = dataset.filter(lambda src, tgt: tf.logical_and(tf.less_equal(tf.shape(src)[0], max_len),
@@ -118,7 +118,7 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
                                 tf.to_int32(src),
                                 tf.to_int32(tgt)
                                 ),
-                                num_parallel_calls=self.thread_num
+                                num_parallel_calls=_thread_num
                              )
 
         dataset = dataset.filter(lambda src, tgt: tf.logical_and(tf.less_equal(tf.shape(src)[0], max_len),
@@ -146,8 +146,8 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
                 "src_input_idx": 0,
                 "tgt_input_idx": 0,
                 "tgt_output_idx": 0,
-                "src_input_length": 0,
-                "tgt_input_length": 0
+                "src_len": 0,
+                "tgt_len": 0
             }
         )
 
@@ -174,6 +174,6 @@ def infer_dataset_fn(src_vocab_path, max_len, batch_size):
             "src_len": 0
             }
         )
-    
+
     return dataset_src, input_src
 

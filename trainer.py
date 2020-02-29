@@ -35,7 +35,7 @@ class Trainer(object):
 
         iters = tf.data.Iterator.from_structure(train_dataset.output_types,
                                                 train_dataset.output_shapes)
-        src, tgt = iters.get_next()
+        features = iters.get_next()
 
         self.tgt_vocab_dict = get_vocab(self.tgt_vocab_path, False)
 
@@ -47,10 +47,10 @@ class Trainer(object):
         model = Transformer(hyp_args)
         global_step = tf.train.get_or_create_global_step()
 
-        self.train_loss, self.train_opt = model.build_opt(src, tgt, hyp_args["hidden_dim"],
+        self.train_loss, self.train_opt = model.build_opt(features, hyp_args["hidden_dim"],
                                                         global_step, hyp_args["warmup_step"])
 
-        self.decoded_idx, self.test_loss = model.test_fn(src["input_idx"], tgt["output_idx"])
+        self.decoded_idx, self.test_loss = model.test_fn(features["src_input_idx"], features["tgt_output_idx"])
         ## for tensorboard
         self.train_loss_graph = tf.placeholder(shape=None, dtype=tf.float32)
         self.test_loss_graph = tf.placeholder(shape=None, dtype=tf.float32)

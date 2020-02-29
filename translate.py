@@ -40,7 +40,7 @@ class Translate(object):
 
         print("Now building model")
         model = Transformer(hyp_args)
-        self.decoded_idx = model.infer_fn(src["input_idx"])
+        self.decoded_idx = model.infer_fn(src["src_input_idx"])
         # build session
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
