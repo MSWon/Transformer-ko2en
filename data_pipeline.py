@@ -32,39 +32,61 @@ def train_dataset_fn(src_corpus_path, tgt_corpus_path,
 
   with tf.device("/cpu:0"):
       tf_vocab_src = get_vocab(src_vocab_path)
-      dataset_src = tf.data.TextLineDataset(src_corpus_path)
-      dataset_src = dataset_src.map(lambda token: tf.concat([tf.string_split([token]).values, ["</s>"]], axis=0),
-                                    num_parallel_calls=_thread_num)
-      dataset_src = dataset_src.map(lambda token: {"input_idx": tf_vocab_src.lookup(token),
-                                                   "len": tf.shape(token)[0]},
-                                                   num_parallel_calls=_thread_num)
-
       tf_vocab_tgt = get_vocab(tgt_vocab_path)
+      dataset_src = tf.data.TextLineDataset(src_corpus_path)
       dataset_tgt = tf.data.TextLineDataset(tgt_corpus_path)
-      dataset_tgt = dataset_tgt.map(lambda token: tf.concat([["<s>"], tf.string_split([token]).values, ["</s>"]], axis=0),
-                                    num_parallel_calls=_thread_num)
-      dataset_tgt = dataset_tgt.map(lambda token: {"input_idx": tf_vocab_tgt.lookup(token[:-1]),
-                                                   "output_idx": tf_vocab_tgt.lookup(token[1:]),
-                                                   "len": tf.shape(token[:-1])[0]},
-                                                    num_parallel_calls=_thread_num)
 
       dataset = tf.data.Dataset.zip((dataset_src, dataset_tgt))
-      dataset = dataset.filter(lambda src, tgt: tf.logical_and(tf.less_equal(src["len"], max_len),
-                                                               tf.less_equal(tgt["len"], max_len)))
-
       dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(_buffer_size))
+
+      dataset = dataset.map(lambda src,tgt:(
+                                tf.concat([tf.string_split([src]).values, ["</s>"]], axis=0),
+                                tf.concat([["<s>"], tf.string_split([tgt]).values, ["</s>"]], axis=0)
+                                ),
+                                num_parallel_calls=_thread_num
+                            )
+
+      dataset = dataset.map(lambda src,tgt:(
+                                tf_vocab_src.lookup(src),
+                                tf_vocab_tgt.lookup(tgt)
+                                ),
+                                num_parallel_calls=_thread_num
+                            )
+
+      dataset = dataset.map(lambda src, tgt:(
+                                tf.to_int32(src),
+                                tf.to_int32(tgt)
+                                ),
+                                num_parallel_calls=self.thread_num
+                            )
+
+      dataset = dataset.filter(lambda src, tgt: tf.logical_and(tf.less_equal(tf.shape(src)[0], max_len),
+                                                               tf.less_equal(tf.shape(tgt)[0], max_len)))
+
+      dataset = dataset.map(lambda src,tgt:{
+                                "src_input_idx": src,
+                                "src_len": tf.shape(src)[0],
+                                "tgt_input_idx": tgt[:-1],
+                                "tgt_output_idx": tgt[1:],
+                                "tgt_len": tf.shape(tgt[:-1])[0],
+                               },
+                            num_parallel_calls=_thread_num
+                          )
+
       # Use bucket batch
       bucket_boundaries = [i for i in range(10, max_len + 1, int(max_len / _bucket_size))]
       bucket_batch_sizes = [max(1, batch_size // length) for length in bucket_boundaries + [max_len]]
 
       dataset = dataset.apply(tf.data.experimental.bucket_by_sequence_length(
-                             lambda src, tgt: (tf.maximum(src["len"], tgt["len"])),
-                             bucket_boundaries,
-                             bucket_batch_sizes
-                             ))
+                                     lambda x: tf.maximum(x["src_len"], x["tgt_len"]),
+                                     bucket_boundaries,
+                                     bucket_batch_sizes
+                                 )
+                             )
 
       # Prefetch the next element to improve speed of input pipeline.
-      dataset = dataset.prefetch(batch_size)
+      #dataset = dataset.prefetch(batch_size)
+      dataset = dataset.apply(tf.data.experimental.prefetch_to_device("/gpu:0", 3))
   return dataset
 
 
@@ -72,42 +94,86 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
                     src_vocab_path, tgt_vocab_path, max_len, batch_size):
     with tf.device("/cpu:0"):
         tf_vocab_src = get_vocab(src_vocab_path)
-        dataset_src = tf.data.TextLineDataset(src_corpus_path)
-        dataset_src = dataset_src.map(lambda token: tf.concat([tf.string_split([token]).values, ["</s>"]], axis=0),
-                                      num_parallel_calls=_thread_num)
-        dataset_src = dataset_src.map(lambda token: {"input_idx": tf_vocab_src.lookup(token),
-                                                     "len": tf.shape(token)[0]},
-                                                     num_parallel_calls=_thread_num)
-
         tf_vocab_tgt = get_vocab(tgt_vocab_path)
+        dataset_src = tf.data.TextLineDataset(src_corpus_path)
         dataset_tgt = tf.data.TextLineDataset(tgt_corpus_path)
-        dataset_tgt = dataset_tgt.map(lambda token: tf.concat([["<s>"], tf.string_split([token]).values, ["</s>"]], axis=0),
-                                      num_parallel_calls=_thread_num)
-        dataset_tgt = dataset_tgt.map(lambda token: {"input_idx": tf_vocab_tgt.lookup(token[:-1]),
-                                                     "output_idx": tf_vocab_tgt.lookup(token[1:]),
-                                                     "len": tf.shape(token[:-1])[0]},
-                                                     num_parallel_calls=_thread_num)
 
         dataset = tf.data.Dataset.zip((dataset_src, dataset_tgt))
-        dataset = dataset.filter(lambda src, tgt: tf.logical_and(tf.less_equal(src["len"], max_len),
-                                                                 tf.less_equal(tgt["len"], max_len)))
 
-        dataset = dataset.padded_batch(batch_size, padded_shapes=({"input_idx": [max_len], "len": []},
-                                                                  {"input_idx": [max_len],
-                                                                   "output_idx": [max_len], "len": []}))
+        dataset = dataset.map(lambda src, tgt: (
+                                    tf.concat([tf.string_split([src]).values, ["</s>"]], axis=0),
+                                    tf.concat([["<s>"], tf.string_split([tgt]).values, ["</s>"]], axis=0)
+                                ),
+                                num_parallel_calls=_thread_num
+                              )
 
-        # Prefetch the next element to improve speed of input pipeline.
-        dataset = dataset.prefetch(batch_size)
+        dataset = dataset.map(lambda src, tgt: (
+                                    tf_vocab_src.lookup(src),
+                                    tf_vocab_tgt.lookup(tgt)
+                                 ),
+                                num_parallel_calls=_thread_num
+                              )
+
+        dataset = dataset.map(lambda src, tgt:(
+                                tf.to_int32(src),
+                                tf.to_int32(tgt)
+                                ),
+                                num_parallel_calls=self.thread_num
+                             )
+
+        dataset = dataset.filter(lambda src, tgt: tf.logical_and(tf.less_equal(tf.shape(src)[0], max_len),
+                                                                 tf.less_equal(tf.shape(tgt)[0], max_len)))
+
+        dataset = dataset.map(lambda src, tgt: {
+                                "src_input_idx": src,
+                                "src_len": tf.shape(src)[0],
+                                "tgt_input_idx": tgt[:-1],
+                                "tgt_output_idx": tgt[1:],
+                                "tgt_len": tf.shape(tgt[:-1])[0],
+                                },
+                                num_parallel_calls=_thread_num
+                              )
+        dataset = dataset.padded_batch(
+            batch_size,
+            {
+                "src_input_idx": [tf.Dimension(None)],
+                "tgt_input_idx": [tf.Dimension(None)],
+                "tgt_output_idx": [tf.Dimension(None)],
+                "src_len": [],
+                "tgt_len": []
+            },
+            {
+                "src_input_idx": 0,
+                "tgt_input_idx": 0,
+                "tgt_output_idx": 0,
+                "src_input_length": 0,
+                "tgt_input_length": 0
+            }
+        )
+
     return dataset
 
 def infer_dataset_fn(src_vocab_path, max_len, batch_size):
     tf_vocab_src = get_vocab(src_vocab_path)
     input_src = tf.placeholder(shape=(1, None), dtype=tf.string)
     dataset_src = tf.data.Dataset.from_tensor_slices(input_src)
-    dataset_src = dataset_src.map(lambda token: tf.concat([token, ["</s>"]], axis=0))
-    dataset_src = dataset_src.map(lambda token: {"input_idx": tf_vocab_src.lookup(token),
-                                                 "len": tf.shape(token)[0]})
+    dataset_src = dataset_src.map(lambda src: tf.concat([src, ["</s>"]], axis=0))
+    dataset_src = dataset_src.map(lambda src: tf_vocab_src.lookup(src))
+    dataset_src = dataset_src.map(lambda src: tf.to_int32(src))
+    dataset_src = dataset_src.map(lambda src: {"src_input_idx": src,
+                                               "src_len": tf.shape(src)[0]})
 
-    dataset_src = dataset_src.padded_batch(batch_size, padded_shapes=({"input_idx": [max_len], "len": []}))
+    dataset_src = dataset_src.padded_batch(
+            batch_size,
+            {
+            "src_input_idx": [tf.Dimension(None)],
+            "src_len": []
+            },
+            {
+            "src_input_idx": 0,
+            "src_len": 0
+            }
+        )
+    
     return dataset_src, input_src
 
