@@ -8,13 +8,14 @@ tgt_vocab_path: ./data/bpe.en.vocab
 src_bpe_model_path: ./data/bpe.ko.model
 tgt_bpe_model_path: ./data/bpe.en.model
 ## Training config
-training_steps: 10000
+training_steps: 100000
 warmup_step: 4000
-max_len: 128
-batch_size: 16000
+max_len: 50
+decoded_max_len: 150
+batch_size: 40000
 bos_idx: 2
 eos_idx: 3
-n_gpus: 4
+n_gpus: 8
 model_path: transformer_ko2en.ckpt
 ## Model config 
 num_layers: 6
