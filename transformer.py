@@ -18,7 +18,6 @@ class Transformer(object):
         self.bos_idx = hyp_args['bos_idx']
         self.eos_idx = hyp_args['eos_idx']
         self.max_len = hyp_args['max_len']
-        self.decoded_max_len = hyp_args['decoded_max_len']
         self.n_gpus = hyp_args['n_gpus']
         self.shared_dec_inout_emb = hyp_args['shared_dec_inout_emb']
         
@@ -183,7 +182,7 @@ class Transformer(object):
         ## Greedy Decoder
         def cond(timestep, input, output, output_array, loss_array):
             ''' Ends 'while-loop' when it returns False '''
-            return tf.logical_and(tf.less(timestep, self.decoded_max_len), tf.reduce_all(tf.not_equal(output, self.eos_idx)))
+            return tf.logical_and(tf.less(timestep, self.max_len), tf.reduce_all(tf.not_equal(output, self.eos_idx)))
         def body(timestep, input, output, output_array, loss_array):
             ''' Main function of the while loop '''
             decoder_outputs = self.build_decoder(enc_input_idx, encoder_outputs, input, isTrain=False)
