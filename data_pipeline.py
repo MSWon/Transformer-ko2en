@@ -85,8 +85,7 @@ def train_dataset_fn(src_corpus_path, tgt_corpus_path,
                              )
 
       # Prefetch the next element to improve speed of input pipeline.
-      #dataset = dataset.prefetch(batch_size)
-      dataset = dataset.apply(tf.data.experimental.prefetch_to_device("/gpu:0", 3))
+      dataset = dataset.prefetch(3)
   return dataset
 
 
@@ -150,7 +149,6 @@ def test_dataset_fn(src_corpus_path, tgt_corpus_path,
                 "tgt_len": 0
             }
         )
-
     return dataset
 
 def infer_dataset_fn(src_vocab_path, max_len, batch_size):
