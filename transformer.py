@@ -171,6 +171,7 @@ class Transformer(object):
         dec_input_idx : (batch_size, dec_len)
         '''
         batch_size = tf.shape(enc_input_idx)[0]
+        dec_len = tf.shape(dec_output_idx)[1]
         ## Initial values for while loop
         init_timestep = tf.constant(0, dtype=tf.int32)
         init_input = tf.fill([batch_size, 1], self.bos_idx)
@@ -182,7 +183,7 @@ class Transformer(object):
         ## Greedy Decoder
         def cond(timestep, input, output, output_array, loss_array):
             ''' Ends 'while-loop' when it returns False '''
-            return tf.logical_and(tf.less(timestep, self.max_len), tf.reduce_all(tf.not_equal(output, self.eos_idx)))
+            return tf.logical_and(tf.less(timestep, dec_len), tf.reduce_all(tf.not_equal(output, self.eos_idx)))
         def body(timestep, input, output, output_array, loss_array):
             ''' Main function of the while loop '''
             decoder_outputs = self.build_decoder(enc_input_idx, encoder_outputs, input, isTrain=False)
