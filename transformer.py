@@ -20,7 +20,8 @@ class Transformer(object):
         self.max_len = hyp_args['max_len']
         self.decoded_max_len = hyp_args['decoded_max_len']
         self.n_gpus = hyp_args['n_gpus']
-
+        self.shared_dec_inout_emb = hyp_args['shared_dec_inout_emb']
+        
     def build_embed(self, inputs, isTrain):
         '''
         inputs : (batch_size, max_len)
@@ -86,8 +87,11 @@ class Transformer(object):
         with tf.variable_scope("Output_layer", reuse=tf.AUTO_REUSE):
             dec_len = tf.shape(decoder_outputs)[1]
             decoder_outputs = tf.reshape(decoder_outputs, [-1, self.hidden_dim])
-            dec_shared_weights = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='Decoder/Embeddings/Weights')[0]
-            logits = tf.matmul(decoder_outputs, dec_shared_weights, transpose_b=True)
+            if self.shared_dec_inout_emb:
+                output_weights = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='Decoder/Embeddings/Weights')[0]
+            else:
+                output_weights = tf.get_variable('Weights', [self.vocab_size, self.hidden_dim], dtype=tf.float32)
+            logits = tf.matmul(decoder_outputs, output_weights, transpose_b=True)
             logits = tf.reshape(logits, [-1, dec_len, self.vocab_size])
         return logits
 
