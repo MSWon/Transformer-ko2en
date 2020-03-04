@@ -94,7 +94,7 @@ class Trainer(object):
                                        feed_dict={self.train_loss_graph:train_loss})
                     writer.add_summary(summary, step)
                 
-                if step % 50000 == 0 and step > 0:
+                if step % 2000 == 0 and step > 0:
                     print("Now for test data")
                     sess.run(self.test_init_op)
                     n_test_step = 0
@@ -117,7 +117,7 @@ class Trainer(object):
                                                           self.test_bleu_graph: test_bleu})
                     writer.add_summary(summary, step)
 
-                    if test_loss < best_loss:
+                    if test_loss < best_loss or step % 2000 == 0:
                         save_path = saver.save(sess, "./model/" + self.model_path)
                         best_loss = test_loss
 
