@@ -26,3 +26,4 @@ linear_value_dim: 512
 ffn_dim: 2048
 dropout: 0.1
 vocab_size: 32000 
+shared_dec_inout_emb: False
