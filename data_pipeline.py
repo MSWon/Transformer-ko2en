@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-_buffer_size = 4000000
+_buffer_size = 2000000
 _bucket_size = 10
 _thread_num = 16
 
