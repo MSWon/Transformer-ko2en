@@ -20,6 +20,7 @@ def prepro(sent):
     sent = re.sub("\(.*?\)|\[.*?\]", "", sent)
     sent = re.sub("[^0-9a-zA-Z가-힣_\-@\.:&+!?'/,\s]", "", sent)
     sent = re.sub("(http[s]?://([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)|(www.([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)", "<URL>", sent)
+    sent = re.sub("\n", "", sent)
     return sent
 
 ko_corpus, en_corpus = [], []
@@ -27,8 +28,10 @@ idx = 1
 for filename in filename_list:
     print("file num {} in progress".format(idx))
     df = pd.read_excel(filename)
-    ko_corpus += [prepro(sent) for sent in df['원문']]
-    en_corpus += [prepro(sent) for sent in df['번역문']]
+    for sent_ko, sent_en in zip(df['원문'], df['번역문']):
+        if len(sent_ko.split())>1 and len(sent_en.split())>1:
+            ko_corpus.append(prepro(sent_ko))
+            en_corpus.append(prepro(sent_en))
     idx += 1
 
 print("Done")
