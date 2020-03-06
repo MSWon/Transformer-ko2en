@@ -71,3 +71,13 @@ class Translate(object):
                                        self.tgt_sp)
             print(decoded_word)
 
+    def service_infer(self, input_sent):
+        input_sent = self.prepro(input_sent)
+        input_sent = [self.src_sp.EncodeAsPieces(input_sent)]
+
+        self.sess.run(self.infer_init_op,
+                      feed_dict={self.input_placeholder:input_sent})
+        idx = self.sess.run(self.decoded_idx)
+        decoded_word = idx2plainword(self.tgt_vocab_dict, idx,
+                                     self.tgt_sp)
+        return decoded_word
