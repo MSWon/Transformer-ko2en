@@ -55,13 +55,19 @@ class Translate(object):
     def prepro(self, sent):
         sent = re.sub("\(.*?\)|\[.*?\]", "", sent)
         sent = re.sub("[^0-9a-zA-Z가-힣_\-@\.:&+!?'/,\s]", "", sent)
-        sent = re.sub("(http[s]?://([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)|(www.([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)", "<URL>", sent)
-        return sent
+        url_regex = "(http[s]?://([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)|(www.([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)"
+        is_url = re.search(url_regex, sent)
+        if is_url:
+            url_original = is_url.group()
+        else:
+            url_original = None
+        sent = re.sub(url_regex, "<URL>", sent)
+        return sent, url_original
 
     def infer(self):
         while True:
             input_sent = input("Input Korean sent : ")
-            input_sent = self.prepro(input_sent)
+            input_sent, url_original = self.prepro(input_sent)
             input_sent = [self.src_sp.EncodeAsPieces(input_sent)]
 
             self.sess.run(self.infer_init_op,
@@ -69,10 +75,12 @@ class Translate(object):
             idx = self.sess.run(self.decoded_idx)
             decoded_word = idx2plainword(self.tgt_vocab_dict, idx,
                                        self.tgt_sp)
+            if url_original:
+                decoded_word = re.sub("<URL>", url_original, decoded_word)
             print(decoded_word)
 
     def service_infer(self, input_sent):
-        input_sent = self.prepro(input_sent)
+        input_sent, url_original = self.prepro(input_sent)
         input_sent = [self.src_sp.EncodeAsPieces(input_sent)]
 
         self.sess.run(self.infer_init_op,
@@ -80,4 +88,6 @@ class Translate(object):
         idx = self.sess.run(self.decoded_idx)
         decoded_word = idx2plainword(self.tgt_vocab_dict, idx,
                                      self.tgt_sp)
+        if url_original:
+            decoded_word = re.sub("<URL>", url_original, decoded_word)
         return decoded_word
