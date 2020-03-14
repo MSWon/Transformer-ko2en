@@ -1,11 +1,8 @@
-
 import tensorflow as tf
 
 
-
-class FFN:
-    """FFN class (Position-wise Feed-Forward Networks)"""
-
+class FFN(object):
+    """ FFN class (Position-wise Feed-Forward Networks) """
     def __init__(self,
                  w1_dim=2048,
                  w2_dim=512,
@@ -16,9 +13,7 @@ class FFN:
         self.dropout = dropout
 
     def dense_relu_dense(self, inputs, isTrain, padding=None):
-        
         """Return outputs of the feedforward network.
-        
         Args:
           inputs: tensor with shape [batch_size, length, model_dim]
           padding: the padding values are temporarily removed

@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jul 29 11:47:27 2019
-
-@author: jbk48
-"""
-
 import math
 import numpy as np
 import tensorflow as tf
@@ -98,6 +91,10 @@ def get_padding_bias(x):
   return attention_bias
 
 def get_shape_list(x):
+  """
+  :param x: input tensor
+  :return: tensor shape list
+  """
   static = x.get_shape().as_list()
   shape = tf.shape(x)
 
@@ -110,10 +107,11 @@ def get_shape_list(x):
   return result
 
 def calc_bleu(ref, translation):
-  '''
-  ref: reference file path
-  translation: model output file path
-  '''
+  """
+  :param ref:reference file path
+  :param translation:model output file path
+  :return: BLEU score
+  """
   get_bleu_score = "perl multi-bleu.perl {} < {} > {}".format(ref, translation, "temp")
   os.system(get_bleu_score)
   bleu_score_report = open("temp", "r").read()

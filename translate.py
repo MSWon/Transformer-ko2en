@@ -8,7 +8,7 @@ from data_pipeline import infer_dataset_fn, get_vocab, idx2plainword
 os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 class Translate(object):
-
+    """ Translate class """
     def __init__(self, hyp_args):
         self.train_src_corpus_path = hyp_args["train_src_corpus_path"]
         self.train_tgt_corpus_path = hyp_args["train_tgt_corpus_path"]
@@ -48,11 +48,19 @@ class Translate(object):
         self.restore_model(self.sess)
 
     def restore_model(self, sess):
+        """
+        :param sess: tf.Session()
+        :return: None
+        """
         saver = tf.train.Saver()
         saver.restore(sess, "./model/" + self.model_path)
         print("Model loaded!")
 
     def prepro(self, sent):
+        """
+        :param sent: string
+        :return: preprocessed sentence
+        """
         sent = re.sub("\(.*?\)|\[.*?\]", "", sent)
         sent = re.sub("[^0-9a-zA-Z가-힣_\-@\.:&+!?'/,\s]", "", sent)
         url_regex = "(http[s]?://([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)|(www.([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)"
@@ -65,6 +73,9 @@ class Translate(object):
         return sent, url_original
 
     def infer(self):
+        """
+        :return: translated sentence
+        """
         while True:
             input_sent = input("Input Korean sent : ")
             input_sent, url_original = self.prepro(input_sent)
@@ -80,6 +91,10 @@ class Translate(object):
             print(decoded_word)
 
     def service_infer(self, input_sent):
+        """
+        :param input_sent: string
+        :return: translated sentence
+        """
         input_sent, url_original = self.prepro(input_sent)
         input_sent = [self.src_sp.EncodeAsPieces(input_sent)]
 

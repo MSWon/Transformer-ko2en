@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 30 13:57:59 2019
-
-@author: jbk48
-"""
-
 import argparse
 import yaml
 

@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Dec  6 18:13:34 2019
-
-@author: jbk48
-"""
-
 import pandas as pd
 import sentencepiece as spm
 import re

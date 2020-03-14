@@ -5,7 +5,7 @@ from decoder import Decoder
 from gpu_utils import average_gradients
 
 class Transformer(object):
-
+    """ Transformer class """
     def __init__(self, hyp_args):
         self.num_layers = hyp_args['num_layers']
         self.num_heads = hyp_args['num_heads']
@@ -22,9 +22,11 @@ class Transformer(object):
         self.shared_dec_inout_emb = hyp_args['shared_dec_inout_emb']
         
     def build_embed(self, inputs, isTrain):
-        '''
-        inputs : (batch_size, max_len)
-        '''
+        """
+        :param inputs: (batch_size, max_len)
+        :param isTrain: boolean (True/False)
+        :return: (batch_size, max_len, emb_dim)
+        """
         max_seq_length = tf.shape(inputs)[1]
         # Positional Encoding
         with tf.variable_scope("Positional-encoding", reuse=tf.AUTO_REUSE):
@@ -48,6 +50,11 @@ class Transformer(object):
 
     def build_encoder(self, enc_input_idx, isTrain):
         ## enc_input_idx : (batch_size, enc_len)
+        """
+        :param enc_input_idx: (batch_size, enc_len)
+        :param isTrain: boolean (True/False)
+        :return: (batch_size, enc_len, hidden_dim)
+        """
         with tf.variable_scope("Encoder", reuse=tf.AUTO_REUSE):
             padding_bias = model_utils.get_padding_bias(enc_input_idx)
             padding = model_utils.get_padding(enc_input_idx)
@@ -63,10 +70,13 @@ class Transformer(object):
             return encoder.build(encoder_emb_inp, padding_bias, padding=padding)
 
     def build_decoder(self, enc_input_idx, encoder_outputs, dec_input_idx, isTrain):
-        '''
-        enc_input_idx : (batch_size, enc_len)
-        dec_input_idx : (batch_size, dec_len)
-        '''
+        """
+        :param enc_input_idx: (batch_size, enc_len)
+        :param encoder_outputs: (batch_size, enc_len, hidden_dim)
+        :param dec_input_idx: (batch_size, dec_len)
+        :param isTrain: boolean (True/False)
+        :return: (batch_size, dec_len, hidden_dim)
+        """
         with tf.variable_scope("Decoder", reuse=tf.AUTO_REUSE):
             dec_len = tf.shape(dec_input_idx)[1]
             dec_bias = model_utils.get_decoder_self_attention_bias(dec_len)
@@ -83,6 +93,10 @@ class Transformer(object):
             return decoder.build(decoder_emb_inp, encoder_outputs, dec_bias, enc_dec_bias)
 
     def build_logits(self, decoder_outputs):
+        """
+        :param decoder_outputs: (batch_size, dec_len, hidden_dim)
+        :return: (batch_size, dec_len, vocab_size)
+        """
         with tf.variable_scope("Output_layer", reuse=tf.AUTO_REUSE):
             dec_len = tf.shape(decoder_outputs)[1]
             decoder_outputs = tf.reshape(decoder_outputs, [-1, self.hidden_dim])
@@ -95,6 +109,12 @@ class Transformer(object):
         return logits
 
     def build_loss(self, dec_output_idx, dec_len, logits):
+        """
+        :param dec_output_idx: (batch_size, dec_len)
+        :param dec_len: (batch_size, )
+        :param logits: (batch_size, dec_len, vocab_size)
+        :return: loss
+        """
         max_len = tf.shape(dec_output_idx)[1]
         self.masks = tf.sequence_mask(lengths=dec_len, maxlen=max_len, dtype=tf.float32)
         smoothed_label = self.label_smoothing(tf.one_hot(dec_output_idx, depth=self.vocab_size))
@@ -102,20 +122,33 @@ class Transformer(object):
         return tf.reduce_sum(cross_entropy * self.masks) / (tf.reduce_sum(self.masks) + 1e-10)
 
     def label_smoothing(self, inputs, epsilon=0.1):
+        """
+        :param inputs: (batch_size, dec_len, vocab_size)
+        :param epsilon: float
+        :return: smoothed labels
+        """
         V = inputs.get_shape().as_list()[-1] # number of channels
         return ((1 - epsilon) * inputs) + (epsilon / V)
 
     def noam_scheme(self, d_model, global_step, warmup_steps=4000):
-        '''
-        init_lr: initial learning rate. scalar.
-        global_step: scalar.
-        warmup_steps: scalar. During warmup_steps, learning rate increases
-                      until it reaches init_lr.
-        '''
+        """
+        :param d_model: hidden_dim
+        :param global_step: integer
+        :param warmup_steps: integer
+        :return: learning_rate
+        """
         step = tf.cast(global_step + 1, dtype=tf.float32)
         return d_model ** (-0.5) * tf.minimum(step * warmup_steps ** -1.5, step ** -0.5)
 
     def build_opt(self, features, d_model, global_step, warmup_steps=4000):
+        """
+        :param features: train data pipeline
+        :param d_model: hidden_dim
+        :param global_step: integer
+        :param warmup_steps: integer
+        :return: train_loss: integer
+                 train_opt: optimizer
+        """
         # define optimizer
         learning_rate = self.noam_scheme(d_model, global_step, warmup_steps)
         opt = tf.contrib.opt.LazyAdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.98, epsilon=1e-9)
@@ -153,10 +186,11 @@ class Transformer(object):
         return train_loss, train_opt
 
     def train_fn(self, enc_input_idx, dec_input_idx):
-        '''
-        enc_input_idx : (batch_size, enc_len)
-        dec_input_idx : (batch_size, dec_len)
-        '''
+        """
+        :param enc_input_idx: (batch_size, enc_len)
+        :param dec_input_idx: (batch_size, dec_len)
+        :return: logits: (batch_size, dec_len, vocab_size)
+        """
         ## Encoder
         encoder_outputs = self.build_encoder(enc_input_idx, isTrain=True)
         ## Decoder
@@ -166,10 +200,12 @@ class Transformer(object):
         return logits
 
     def test_fn(self, enc_input_idx, dec_output_idx):
-        '''
-        enc_input_idx : (batch_size, enc_len)
-        dec_input_idx : (batch_size, dec_len)
-        '''
+        """
+        :param enc_input_idx: (batch_size, enc_len)
+        :param dec_output_idx: (batch_size, dec_len)
+        :return: decoded_idx: (batch_size, dec_len)
+                 loss: integer
+        """
         batch_size = tf.shape(enc_input_idx)[0]
         dec_len = tf.shape(dec_output_idx)[1]
         ## Initial values for while loop
@@ -218,9 +254,10 @@ class Transformer(object):
         return decoded_idx, total_loss
 
     def infer_fn(self, enc_input_idx):
-        '''
-        enc_input_idx : (batch_size, enc_len)
-        '''
+        """
+        :param enc_input_idx: (batch_size, enc_len)
+        :return: decoded idx: (batch_size, dec_len)
+        """
         batch_size = tf.shape(enc_input_idx)[0]
         ## Initial values for while loop
         init_timestep = tf.constant(0, dtype=tf.int32)

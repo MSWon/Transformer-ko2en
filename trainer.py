@@ -6,7 +6,7 @@ from data_pipeline import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpew
 from model_utils import calc_bleu
 
 class Trainer(object):
-
+    """ Trainer class """
     def __init__(self, hyp_args):
         self.train_src_corpus_path = hyp_args["train_src_corpus_path"]
         self.train_tgt_corpus_path = hyp_args["train_tgt_corpus_path"]
@@ -58,6 +58,10 @@ class Trainer(object):
         print("Done")
 
     def train(self, training_steps):
+        """
+        :param training_steps: integer
+        :return: None
+        """
         print("Now training")
         saver = tf.train.Saver()
         ckpt = tf.train.get_checkpoint_state("./model")

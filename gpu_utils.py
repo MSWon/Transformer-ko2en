@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Oct 22 20:11:49 2019
-
-@author: jbk48
-"""
-
 import tensorflow as tf
 
 def average_gradients(tower_grads):
@@ -64,7 +57,6 @@ def average_gradients(tower_grads):
     return average_grads
 
 def _deduplicate_indexed_slices(values, indices):
-
     unique_indices, new_index_positions = tf.unique(indices)
     summed_values = tf.unsorted_segment_sum(
       values, new_index_positions,

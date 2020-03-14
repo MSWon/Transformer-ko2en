@@ -5,8 +5,7 @@ from model_utils import LayerNormalization
 
 
 class Encoder:
-    """Encoder class"""
-
+    """ Encoder class """
     def __init__(self,
                  num_layers=6,
                  num_heads=8,
@@ -28,6 +27,12 @@ class Encoder:
         self.layer_norm = LayerNormalization(self.model_dim)
 
     def build(self, encoder_inputs, padding_bias, padding):
+        """
+        :param encoder_inputs: (batch_size, word_len, hidden_dim)
+        :param padding_bias: padding mask (batch_size, 1, 1, word_len)
+        :param padding: (batch_size, )
+        :return:
+        """
         o1 = tf.identity(encoder_inputs) ## batch_size, enc_len, dim
 
         for i in range(1, self.num_layers+1):
@@ -41,6 +46,13 @@ class Encoder:
         return o3
 
     def _self_attention(self, q, k, v, bias):
+        """
+        :param q: query (batch_size, word_len, hidden_dim)
+        :param k: key (batch_size, word_len, hidden_dim)
+        :param v: value (batch_size, word_len, hidden_dim)
+        :param bias: padding mask (batch_size, 1, 1, word_len)
+        :return: (batch_size, word_len, hidden_dim)
+        """
         with tf.variable_scope("self-attention"):
             attention = Attention(num_heads=self.num_heads,
                                     linear_key_dim=self.linear_key_dim,
@@ -50,10 +62,21 @@ class Encoder:
             return attention.multi_head(q, k, v, bias, self.isTrain)
 
     def _add_and_norm(self, x, sub_layer_x, num=0):
+        """
+        :param x: (batch_size, word_len, hidden_dim)
+        :param sub_layer_x: (batch_size, word_len, hidden_dim)
+        :param num: integer
+        :return: (batch_size, word_len, hidden_dim)
+        """
         with tf.variable_scope("add-and-norm-{}".format(num)):
             return self.layer_norm(tf.add(x, sub_layer_x)) # with Residual connection
 
     def _positional_feed_forward(self, output, padding):
+        """
+        :param output: (batch_size, word_len, hidden_dim)
+        :param padding: (batch_size, )
+        :return: (batch_size, word_len, hidden_dim)
+        """
         with tf.variable_scope("feed-forward"):
             ffn = FFN(w1_dim=self.ffn_dim,
                       w2_dim=self.model_dim,
