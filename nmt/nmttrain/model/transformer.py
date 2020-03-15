@@ -1,8 +1,8 @@
 import tensorflow as tf
-import model_utils
-from encoder import Encoder
-from decoder import Decoder
-from gpu_utils import average_gradients
+from nmt.nmttrain.utils import model_utils
+from nmt.nmttrain.model.encoder import Encoder
+from nmt.nmttrain.model.decoder import Decoder
+from nmt.nmttrain.utils.gpu_utils import average_gradients
 
 class Transformer(object):
     """ Transformer class """

@@ -1,21 +1,24 @@
 import tensorflow as tf
 import os
 import sentencepiece as spm
-from transformer import Transformer
-from data_pipeline import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpeword
-from model_utils import calc_bleu
+from nmt.nmttrain.model.transformer import Transformer
+from nmt.nmttrain.utils.data_utils import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpeword
+from nmt.nmttrain.utils.model_utils import calc_bleu
 
 class Trainer(object):
     """ Trainer class """
     def __init__(self, hyp_args):
-        self.train_src_corpus_path = hyp_args["train_src_corpus_path"]
-        self.train_tgt_corpus_path = hyp_args["train_tgt_corpus_path"]
-        self.test_src_corpus_path = hyp_args["test_src_corpus_path"]
-        self.test_tgt_corpus_path = hyp_args["test_tgt_corpus_path"]
-        self.src_vocab_path = hyp_args["src_vocab_path"]
-        self.tgt_vocab_path = hyp_args["tgt_vocab_path"]
-        self.src_bpe_model_path = hyp_args["src_bpe_model_path"]
-        self.tgt_bpe_model_path = hyp_args["tgt_bpe_model_path"]
+        uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
+        path = uppath(__file__, 1)
+
+        self.train_src_corpus_path = os.path.join(path,hyp_args["train_src_corpus_path"])
+        self.train_tgt_corpus_path = os.path.join(path,hyp_args["train_tgt_corpus_path"])
+        self.test_src_corpus_path = os.path.join(path,hyp_args["test_src_corpus_path"])
+        self.test_tgt_corpus_path = os.path.join(path,hyp_args["test_tgt_corpus_path"])
+        self.src_vocab_path = os.path.join(path,hyp_args["src_vocab_path"])
+        self.tgt_vocab_path = os.path.join(path,hyp_args["tgt_vocab_path"])
+        self.src_bpe_model_path = os.path.join(path,hyp_args["src_bpe_model_path"])
+        self.tgt_bpe_model_path = os.path.join(path,hyp_args["tgt_bpe_model_path"])
         self.max_len = hyp_args["max_len"]
         self.batch_size = hyp_args["batch_size"]
         self.model_path = hyp_args["model_path"]

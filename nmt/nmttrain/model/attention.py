@@ -1,5 +1,6 @@
 import tensorflow as tf
-import model_utils
+from nmt.nmttrain.utils import model_utils
+
 
 class Attention(object):
     """Attention class"""

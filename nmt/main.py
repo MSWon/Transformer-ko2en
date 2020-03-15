@@ -14,13 +14,13 @@ if __name__ == '__main__':
         print('{} : {}'.format(key, value))
     print('========================')
     if args.mode == "train":
-        from trainer import Trainer
+        from nmt.trainer import Trainer
         ## Build model
         model = Trainer(hyp_args)
         ## Train model
         model.train(hyp_args["training_steps"])
     elif args.mode == "infer":
-        from translate import Translate
+        from nmt.translate import Translate
         ## Build model
         model = Translate(hyp_args)
         ## Infer model

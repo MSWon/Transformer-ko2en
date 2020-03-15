@@ -2,22 +2,25 @@ import tensorflow as tf
 import sentencepiece as spm
 import re
 import os
-from transformer import Transformer
-from data_pipeline import infer_dataset_fn, get_vocab, idx2plainword
+from nmt.nmttrain.model.transformer import Transformer
+from nmt.nmttrain.utils.data_utils import infer_dataset_fn, get_vocab, idx2plainword
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 class Translate(object):
     """ Translate class """
     def __init__(self, hyp_args):
-        self.train_src_corpus_path = hyp_args["train_src_corpus_path"]
-        self.train_tgt_corpus_path = hyp_args["train_tgt_corpus_path"]
-        self.test_src_corpus_path = hyp_args["test_src_corpus_path"]
-        self.test_tgt_corpus_path = hyp_args["test_tgt_corpus_path"]
-        self.src_vocab_path = hyp_args["src_vocab_path"]
-        self.tgt_vocab_path = hyp_args["tgt_vocab_path"]
-        self.src_bpe_model_path = hyp_args["src_bpe_model_path"]
-        self.tgt_bpe_model_path = hyp_args["tgt_bpe_model_path"]
+        uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
+        path = uppath(__file__, 1)
+
+        self.train_src_corpus_path = os.path.join(path,hyp_args["train_src_corpus_path"])
+        self.train_tgt_corpus_path = os.path.join(path,hyp_args["train_tgt_corpus_path"])
+        self.test_src_corpus_path = os.path.join(path,hyp_args["test_src_corpus_path"])
+        self.test_tgt_corpus_path = os.path.join(path,hyp_args["test_tgt_corpus_path"])
+        self.src_vocab_path = os.path.join(path,hyp_args["src_vocab_path"])
+        self.tgt_vocab_path = os.path.join(path,hyp_args["tgt_vocab_path"])
+        self.src_bpe_model_path = os.path.join(path,hyp_args["src_bpe_model_path"])
+        self.tgt_bpe_model_path = os.path.join(path,hyp_args["tgt_bpe_model_path"])
         self.max_len = hyp_args["max_len"]
         self.batch_size = hyp_args["batch_size"]
         self.model_path = hyp_args["model_path"]
@@ -52,8 +55,10 @@ class Translate(object):
         :param sess: tf.Session()
         :return: None
         """
+        uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
+        path = uppath(__file__, 1)
         saver = tf.train.Saver()
-        saver.restore(sess, "./model/" + self.model_path)
+        saver.restore(sess, os.path.join(path, "model/" + self.model_path))
         print("Model loaded!")
 
     def prepro(self, sent):
