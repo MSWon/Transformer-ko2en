@@ -18,7 +18,7 @@ $ nmt download -m data
 $ nmt download -m model
 ```
 
-## 패키지 사용방법
+## Python 패키지 사용방법
 
 ### nmt tokenizer
 ```python
