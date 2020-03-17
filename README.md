@@ -3,7 +3,7 @@
 
 ## 설치 방법
 
-- git clone 및 setup.py 파일을 통해 설치합니다
+- git clone 및 **setup.py** 파일을 통해 설치합니다
 ```
 $ git clone https://github.com/MSWon/Transformer-ko2en.git
 ```
@@ -12,8 +12,8 @@ $ cd Transformer-ko2en
 $ python setup.py install
 ```
 
-- nmt download 명령어를 통해 학습 데이터 및 학습된 모델을 다운받습니다
-- 학습 데이터,모델 config 파일은 /opt/anaconda3/envs/${user이름}/lib/python3.6/site-packages/nmt-1.0.0-py3.6.egg/nmt에 저장됩니다
+- **nmt download** 명령어를 통해 학습 데이터 및 학습된 모델을 다운받습니다
+- 학습 데이터, 학습 모델 및 config 파일은 /opt/anaconda3/envs/${user이름}/lib/python3.6/site-packages/nmt-1.0.0-py3.6.egg/nmt에 저장됩니다
 ```
 $ nmt download -m data
 $ nmt download -m model
@@ -128,3 +128,5 @@ Model loaded!
  * Running on http://0.0.0.0:5005/ (Press CTRL+C to quit)
  * Restarting with stat
 ```
+
+## 성능
