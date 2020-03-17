@@ -1,5 +1,5 @@
 # Transformer-ko2en
-**Transformer** 모델을 이용한 한->영 번역모델 패키지입니다
+**Transformer** 모델을 이용한 **한->영 번역모델** 패키지입니다
 
 ## 설치 방법
 
@@ -13,6 +13,7 @@ $ python setup.py install
 ```
 
 - nmt download 명령어를 통해 학습 데이터 및 학습된 모델을 다운받습니다
+- 학습 데이터,모델 config 파일은 /opt/anaconda3/envs/${user이름}/lib/python3.6/site-packages/nmt-1.0.0-py3.6.egg/nmt에 저장됩니다
 ```
 $ nmt download -m data
 $ nmt download -m model
@@ -87,4 +88,43 @@ Now training
 ```python
 >>> model.service_infer("인공신경망의 발달로 인해 높은 품질의 번역이 가능해졌습니다.")
 'The development of the artificial neural network has enabled high-quality translation.'
+```
+
+## CLI 커맨드 사용방법
+
+### nmt tokenizer
+- BPE 모델을 준비합니다
+```
+$ nmt tokenize --model_path ./bpe.en.model --sentence "I use sentencepiece model for tokenizing words"
+['▁I', '▁use', '▁sentence', 'piece', '▁model', '▁for', '▁token', 'izing', '▁words']
+```
+
+### nmt train
+- config 파일을 준비합니다
+```
+$ nmt train --config_path ./train_config.yaml
+```
+
+### nmt infer
+
+```
+$ nmt infer --config_path ./train_config.yaml
+Now building model
+Model loaded!
+Input Korean sent : 인공신경망의 발달로 인해 높은 품질의 번역이 가능해졌습니다.
+The development of the artificial neural network has enabled high-quality translation.
+```
+
+### nmt service
+- 원하는 port 번호를 입력합니다
+- 브라우저를 키고 ${ip주소}:${port번호}로 접속합니다
+```
+$ nmt service --port 5005
+Now building model
+Model loaded!
+ * Serving Flask app "app" (lazy loading)
+ * Environment: production
+ * Debug mode: on
+ * Running on http://0.0.0.0:5005/ (Press CTRL+C to quit)
+ * Restarting with stat
 ```
