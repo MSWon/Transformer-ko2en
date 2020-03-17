@@ -135,4 +135,4 @@ Model loaded!
 
 ## 데모
 
-![demo](https://github.com/MSWon/Transformer-ko2en/blob/develop/img/ko2en_demo.gif)
+![alt text](https://github.com/MSWon/Transformer-ko2en/blob/develop/img/ko2en_demo.gif)
