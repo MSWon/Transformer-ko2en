@@ -5,6 +5,7 @@ from nmt.nmtcli._service import nmt_service
 from nmt.nmtcli._tokenize import nmt_tokenize
 from nmt.nmtcli._train import nmt_train
 from nmt.nmtcli._infer import nmt_infer
+from nmt.nmtcli._decode import nmt_decode
 
 def main():
     parser = argparse.ArgumentParser()
@@ -37,6 +38,13 @@ def main():
     subparser_infer = subparsers.add_parser("infer", help="package for inference")
     subparser_infer.add_argument("--config_path", "-c", required=True, help="config file path")
     subparser_infer.set_defaults(func=nmt_infer)
+
+    # nmt decode
+    subparser_decode = subparsers.add_parser("decode", help="package for decoding input file")
+    subparser_decode.add_argument("--config_path", "-c", required=True, help="config file path")
+    subparser_decode.add_argument("--input_file", "-i", help="path of input file to decode", required=True)
+    subparser_decode.add_argument("--save_path", "-s", help="save path of the decoded result", required=True)
+    subparser_decode.set_defaults(func=nmt_decode)
 
     args = parser.parse_args()
 
