@@ -27,16 +27,14 @@ path = uppath(__file__, 2)
 app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    path = uppath(__file__, 1)
-    index_path = os.path.join(path, "index.html")
     if request.method == 'POST':
         input_sent = request.form["txtSource"]
         if input_sent in db_trans:
             output_sent = db_trans[input_sent]
         else:
             output_sent = model.service_infer(input_sent)
-        return render_template(index_path, input_sent=input_sent, output_sent=output_sent)
-    return render_template(index_path)
+        return render_template("index.html", input_sent=input_sent, output_sent=output_sent)
+    return render_template("index.html")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
