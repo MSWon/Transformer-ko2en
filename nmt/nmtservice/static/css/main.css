@@ -1,0 +1,70 @@
+#translation #source {
+    background-color: #01DF01;
+    border-radius: 12px;
+    width: 500px;
+    height: 330px;
+    margin: 24px;
+    padding: 24px;
+    text-align: center;
+    display: inline-block;
+}
+
+#translation #source span {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: black;
+    text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.33);
+    text-align: center;
+}
+
+#translation #source textarea[name="txtSource"] {
+    width: 450px;
+    margin-top: 8px;
+    height: 250px;
+    line-height: 36px;
+    font-size: 1.3em;
+    letter-spacing: 3px;
+    border: 0;
+    resize: none;
+}
+
+#translation #source input[name="button"] {
+    font-size: 1.3em;
+    font-weight: bold;
+    padding:5px 15px;
+    background:#E6E6E6;
+    border:0 none;
+    cursor:pointer;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+
+#translation #target {
+    background-color: #01DF01;
+    border-radius: 12px;
+    width: 500px;
+    height: 330px;
+    margin: 24px;
+    padding: 24px;
+    text-align: center;
+    display: inline-block;
+}
+
+#translation #target span {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: black;
+    text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.33);
+    text-align: center;
+}
+
+#translation #target textarea[name="txtTarget"] {
+    width: 450px;
+    margin-top: 8px;
+    height: 250px;
+    line-height: 36px;
+    font-size: 1.3em;
+    letter-spacing: 3px;
+    border: 0;
+    resize: none;
+}
