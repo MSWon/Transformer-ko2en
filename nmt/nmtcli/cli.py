@@ -1,11 +1,13 @@
 import argparse
+
 from nmt import __version__
-from nmt.nmtcli._download import nmt_download
-from nmt.nmtcli._service import nmt_service
-from nmt.nmtcli._tokenize import nmt_tokenize
-from nmt.nmtcli._train import nmt_train
-from nmt.nmtcli._infer import nmt_infer
-from nmt.nmtcli._decode import nmt_decode
+from ._download import nmt_download
+from ._service import nmt_service
+from ._tokenize import nmt_tokenize
+from ._train import nmt_train
+from ._infer import nmt_infer
+from ._decode import nmt_decode
+
 
 def main():
     parser = argparse.ArgumentParser()

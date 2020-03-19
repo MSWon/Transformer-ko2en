@@ -1,9 +1,9 @@
 import tensorflow as tf
 import os
 import sentencepiece as spm
-from nmt.nmttrain.model.transformer import Transformer
-from nmt.nmttrain.utils.data_utils import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpeword
-from nmt.nmttrain.utils.model_utils import calc_bleu
+from .nmttrain.model.transformer import Transformer
+from .nmttrain.utils.data_utils import train_dataset_fn, test_dataset_fn, get_vocab, idx2bpeword
+from .nmttrain.utils.model_utils import calc_bleu
 
 class Trainer(object):
     """ Trainer class """

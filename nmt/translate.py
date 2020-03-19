@@ -2,8 +2,9 @@ import tensorflow as tf
 import sentencepiece as spm
 import re
 import os
-from nmt.nmttrain.model.transformer import Transformer
-from nmt.nmttrain.utils.data_utils import infer_dataset_fn, get_vocab, idx2plainword
+
+from .nmttrain.model.transformer import Transformer
+from .nmttrain.utils.data_utils import infer_dataset_fn, get_vocab, idx2plainword
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 

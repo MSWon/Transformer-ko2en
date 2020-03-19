@@ -1,12 +1,13 @@
-import yaml
-import argparse
-from nmt.translate import Translate
+
 
 def nmt_decode(args):
     """
     :param args:
     :return:
     """
+    import yaml
+    import argparse
+    from ..translate import Translate
     hyp_args = yaml.load(open(args.config_path))
     print('========================')
     for key,value in hyp_args.items():

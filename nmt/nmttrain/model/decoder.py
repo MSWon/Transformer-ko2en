@@ -1,7 +1,7 @@
 import tensorflow as tf
-from nmt.nmttrain.model.attention import Attention
-from nmt.nmttrain.model.layer import FFN
-from nmt.nmttrain.utils.model_utils import LayerNormalization
+from .attention import Attention
+from .layer import FFN
+from ..utils.model_utils import LayerNormalization
 
 
 class Decoder(object):
