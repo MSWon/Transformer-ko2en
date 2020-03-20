@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>번역기 데모</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 </head>
 <body>
-<div id="translation" style="width:1200px;" align="center">
-    <div id="source" style="float:left">
+<div id="translation">
+    <div id="source">
         <span>한국어</span></br>
         <form method="post">
             <textarea placeholder="번역할 내용을 입력하세요." name="txtSource">{{input_sent}}</textarea>
@@ -15,7 +16,7 @@
         </form>
     </div>
 
-    <div id="target" style="float:right">
+    <div id="target">
         <span>영어</span></br>
        <textarea name="txtTarget">{{output_sent}}</textarea>
     </div>
