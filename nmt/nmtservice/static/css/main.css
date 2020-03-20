@@ -1,12 +1,11 @@
 #translation #source {
     background-color: #01DF01;
     border-radius: 12px;
-    width: 500px;
-    height: 330px;
-    margin: 24px;
+    width: 350px;
+    height: 310px;
+    margin: 6px 12px 2px 2px;
     padding: 24px;
     text-align: center;
-    display: inline-block;
 }
 
 #translation #source span {
@@ -18,7 +17,7 @@
 }
 
 #translation #source textarea[name="txtSource"] {
-    width: 450px;
+    width: 330px;
     margin-top: 8px;
     height: 250px;
     line-height: 36px;
@@ -29,9 +28,8 @@
 }
 
 #translation #source input[name="button"] {
-    font-size: 1.3em;
+    font-size: 1.2em;
     font-weight: bold;
-    padding:5px 15px;
     background:#E6E6E6;
     border:0 none;
     cursor:pointer;
@@ -42,12 +40,11 @@
 #translation #target {
     background-color: #01DF01;
     border-radius: 12px;
-    width: 500px;
-    height: 330px;
-    margin: 24px;
+    width: 350px;
+    height: 310px;
+    margin: 6px 12px 2px 2px;
     padding: 24px;
     text-align: center;
-    display: inline-block;
 }
 
 #translation #target span {
@@ -59,7 +56,7 @@
 }
 
 #translation #target textarea[name="txtTarget"] {
-    width: 450px;
+    width: 330px;
     margin-top: 8px;
     height: 250px;
     line-height: 36px;
