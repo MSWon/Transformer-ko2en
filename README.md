@@ -115,19 +115,57 @@ Input Korean sent : 인공신경망의 발달로 인해 높은 품질의 번역�
 The development of the artificial neural network has enabled high-quality translation.
 ```
 
-### nmt service
+### nmt service for website
+- nmt service 모드를 website로 입력합니다
 - 원하는 port 번호를 입력합니다
 - 브라우저를 키고 ${ip주소}:${port번호}로 접속합니다
 ```
-$ nmt service --port 5005
+$ nmt service -m website -p 6006
 Now building model
 Model loaded!
  * Serving Flask app "app" (lazy loading)
  * Environment: production
  * Debug mode: on
- * Running on http://0.0.0.0:5005/ (Press CTRL+C to quit)
+ * Running on http://0.0.0.0:6006/ (Press CTRL+C to quit)
  * Restarting with stat
 ```
+
+### nmt service for rest-api
+
+- nmt service 모드를 restapi로 입력합니다
+- 원하는 port 번호를 입력합니다
+
+```
+$ nmt service -m restapi -p 6006
+Now building model
+Model loaded!
+ * Serving Flask app "app" (lazy loading)
+ * Environment: production
+ * Debug mode: on
+ * Running on http://0.0.0.0:6006/ (Press CTRL+C to quit)
+ * Restarting with stat
+```
+
+- python에서 아래와 같이 요청을 합니다
+
+```python
+>> import json
+>> import urllib
+
+>> encText = urllib.parse.quote("요즘 어린이들은 유튜브로 뽀로로를 즐겨봅니다")
+>> url = "http://172.30.1.3:6006/nmt?source=ko&target=en&text={}".format(encText)
+
+>> request = urllib.request.Request(url)
+>> response = urllib.request.urlopen(request)
+>> response_body = response.read()
+>> json_body = json.loads(response_body.decode('utf-8'))
+
+>> print(json_body)
+{'srcLangType': 'ko',
+ 'tgtLangType': 'en',
+ 'translatedText': 'Nowadays children enjoy Pororo with Youtube these days.'}
+```
+
 
 ## 성능
 
