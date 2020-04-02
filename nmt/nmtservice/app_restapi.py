@@ -1,8 +1,9 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 from nmt.translate import Translate
 import yaml
 import argparse
 import os
+import urllib
 
 db_trans ={'고맙습니다': 'Thank you', 
            '감사합니다': 'Thank you', 
@@ -25,16 +26,19 @@ uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 path = uppath(__file__, 2)
 
 app = Flask(__name__)
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/nmt', methods=['GET'])
 def index():
-    if request.method == 'POST':
-        input_sent = request.form["txtSource"]
-        if input_sent in db_trans:
-            output_sent = db_trans[input_sent]
-        else:
-            output_sent = model.service_infer(input_sent)
-        return render_template("index.html", input_sent=input_sent, output_sent=output_sent)
-    return render_template("index.html")
+    input_sent = urllib.parse.unquote(request.args.get("text"))
+    src_type = request.args.get("source")
+    tgt_type = request.args.get("target")
+    if input_sent in db_trans:
+        output_sent = db_trans[input_sent]
+    else:
+        output_sent = model.service_infer(input_sent)
+    return jsonify({"srcLangType":src_type, "tgtLangType":tgt_type, "translatedText":output_sent})
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
