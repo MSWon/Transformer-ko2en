@@ -153,7 +153,7 @@ Model loaded!
 >> import urllib
 
 >> encText = urllib.parse.quote("요즘 어린이들은 유튜브로 뽀로로를 즐겨봅니다")
->> url = "http://172.30.1.3:6006/nmt?source=ko&target=en&text={}".format(encText)
+>> url = "http://아이피 주소:6006/nmt?source=ko&target=en&text={}".format(encText)
 
 >> request = urllib.request.Request(url)
 >> response = urllib.request.urlopen(request)
