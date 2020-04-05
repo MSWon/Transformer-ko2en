@@ -103,6 +103,16 @@ $ nmt tokenize --model_path ./bpe.en.model --sentence "I use sentencepiece model
 - config 파일을 준비합니다
 ```
 $ nmt train --config_path ./train_config.yaml
+Now building model
+Building model tower_1
+Could take few minutes
+Now building model
+Building model tower_2
+Could take few minutes
+Now building model
+Building model tower_3
+Could take few minutes
+...
 ```
 
 ### nmt infer
