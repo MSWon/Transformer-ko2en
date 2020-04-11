@@ -22,6 +22,7 @@ class Trainer(object):
         self.max_len = hyp_args["max_len"]
         self.batch_size = hyp_args["batch_size"]
         self.model_path = hyp_args["model_path"]
+        self.training_steps = hyp_args["training_steps"]
 
         self.tgt_sp = spm.SentencePieceProcessor()
         self.tgt_sp.Load(self.tgt_bpe_model_path)
@@ -60,9 +61,8 @@ class Trainer(object):
         self.test_bleu_graph = tf.placeholder(shape=None, dtype=tf.float32)
         print("Done")
 
-    def train(self, training_steps):
+    def train(self):
         """
-        :param training_steps: integer
         :return: None
         """
         print("Now training")
@@ -87,7 +87,7 @@ class Trainer(object):
             best_loss = 1e8
             writer = tf.summary.FileWriter('./tensorboard/graph', sess.graph)
 
-            for step in range(training_steps):
+            for step in range(self.training_steps):
                 n_train_step += 1
                 batch_train_loss, _ = sess.run([self.train_loss,
                                                 self.train_opt])
