@@ -70,7 +70,7 @@ Could take few minutes
 ```
 - 모델을 학습합니다
 ```python
->>> model.train(hyp_args["training_steps"])
+>>> model.train()
 Now training
 ```
 
