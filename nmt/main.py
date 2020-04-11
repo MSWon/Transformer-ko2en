@@ -18,7 +18,7 @@ if __name__ == '__main__':
         ## Build model
         model = Trainer(hyp_args)
         ## Train model
-        model.train(hyp_args["training_steps"])
+        model.train()
     elif args.mode == "infer":
         from nmt.translate import Translate
         ## Build model
