@@ -6,12 +6,16 @@ def nmt_download(args):
     :param args:
     :return:
     """
-    uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
-    path = uppath(__file__, 2)
-
+    from nmt.download_model import download_file_from_google_drive
     if args.mode == "data":
-        os.system("sh {}".format(os.path.join(path, "download_data.sh")))
+        FILE_ID = "1llEZdcALMJB8AFcJNTRsVpyZX3Brla4e"
+        FILE_NAME = "data.tar.gz"
+        TOTAL_SIZE = 206_572_573
+        download_file_from_google_drive(FILE_ID, FILE_NAME, TOTAL_SIZE)
     elif args.mode == "model":
-        os.system("sh {}".format(os.path.join(path, "download_model.sh")))
+        FILE_ID = "117l6DaibafWvTiLjE0gkdJ1PAH0uaDmV"
+        FILE_NAME = "koen.2021.0530.tar.gz"
+        TOTAL_SIZE = 346_957_468
+        download_file_from_google_drive(FILE_ID, FILE_NAME, TOTAL_SIZE)
     else:
         raise ValueError('mode should be (data/model)')

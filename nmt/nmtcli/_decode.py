@@ -7,19 +7,21 @@ def nmt_decode(args):
     """
     import yaml
     import argparse
-    from ..translate import Translate
+    import os
+    from tqdm import tqdm
+    from nmt.nmtservice.service_transformer import ServiceTransformer
+
     hyp_args = yaml.load(open(args.config_path))
     print('========================')
     for key,value in hyp_args.items():
         print('{} : {}'.format(key, value))
     print('========================')
     ## Build model
-    model = Translate(hyp_args)
+    model = ServiceTransformer(hyp_args)
     ## Infer model
     f_in = open(args.input_file, "r", encoding="utf-8")
-    n = 1
-    with open(args.save_path, "w", encoding="utf-8") as f_out:
-        for sent in f_in:
-            print("{} sentences decoded!".format(n))
-            f_out.write(model.service_infer(sent)+"\n")
-            n += 1
+    lines = f_in.readlines()
+
+    with open(f"{args.input_file}.out", "w", encoding="utf-8") as f_out:
+        for sent in tqdm(lines, total=len(lines)):
+            f_out.write(model.infer(sent)+"\n")
