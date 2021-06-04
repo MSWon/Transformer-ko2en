@@ -45,6 +45,7 @@ if __name__ == '__main__':
     parser.add_argument("--config_path", "-c", required=True, help="config file path")
     args = parser.parse_args()
     hyp_args = yaml.load(args.config_path)
+    hyp_args["config_path"] = args.config_path
     ## Build model
     model = ServiceTransformer(hyp_args)
     app.run(host='0.0.0.0', port=args.port, debug=True)

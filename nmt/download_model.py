@@ -28,12 +28,12 @@ def get_confirm_token(response):
     return None
 
 def unpack_remove_archive(file_name):
-    print(f"Now unpacking model file '{file_name}'")
+    print(f"Now unpacking file '{file_name}'")
     shutil.unpack_archive(file_name, './')
     os.remove(file_name)
 
 def save_response_content(response, destination, total_size):
-    print(f"Now downloading model file '{destination}'")
+    print(f"Now downloading file '{destination}'")
     with open(destination, "wb") as f:
         for chunk in tqdm(response.iter_content(CHUNK_SIZE), total=total_size // CHUNK_SIZE):
             if chunk: # filter out keep-alive new chunks

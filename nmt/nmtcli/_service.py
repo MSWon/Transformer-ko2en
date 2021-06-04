@@ -6,18 +6,17 @@ def nmt_service(args):
     :return:
     """
     import os
-    import yaml
-    from flask import Flask
-    from nmt.nmtservice.service_transformer import ServiceTransformer
 
-    app = Flask(__name__)
+    uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
+    path = uppath(__file__, 2)
 
     if args.mode == "restapi":
-        hyp_args = yaml.load(open(args.config_path))
-        model = ServiceTransformer(hyp_args)
-        from nmt.nmtservice.app_restapi import index
-        app.run(host='0.0.0.0', port=args.port, debug=True)
+        code_path = os.path.join(path, "nmtservice/app_restapi.py")
     elif args.mode == "website":
-        os.system("python {} --port {}".format(os.path.join(path, "nmtservice/app_website.py"), args.port))
+        code_path = os.path.join(path, "nmtservice/app_website.py")
     else:
         raise NameError
+    
+    config_path = args.config_path
+    port_num = args.port
+    os.system(f"python {code_path} -c {config_path} -p {port_num}")

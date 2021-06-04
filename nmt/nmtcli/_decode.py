@@ -12,10 +12,7 @@ def nmt_decode(args):
     from nmt.nmtservice.service_transformer import ServiceTransformer
 
     hyp_args = yaml.load(open(args.config_path))
-    print('========================')
-    for key,value in hyp_args.items():
-        print('{} : {}'.format(key, value))
-    print('========================')
+    hyp_args["config_path"] = args.config_path
     ## Build model
     model = ServiceTransformer(hyp_args)
     ## Infer model

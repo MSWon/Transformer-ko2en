@@ -14,12 +14,18 @@ class ServiceTransformer(ExportTransformer):
     """ ServiceTransformer class """
     def __init__(self, hyp_args):
         self.model_version = hyp_args["model_version"]
-        tokenizer_path = os.path.join(self.model_version, "tokenizer")
-        self.src_vocab_path = os.path.join(tokenizer_path, hyp_args["src_vocab_path"])
-        self.tgt_vocab_path = os.path.join(tokenizer_path, hyp_args["tgt_vocab_path"])
-        self.src_bpe_model_path = os.path.join(tokenizer_path, hyp_args["src_bpe_model_path"])
-        self.tgt_bpe_model_path = os.path.join(tokenizer_path, hyp_args["tgt_bpe_model_path"])
+        self.config_path = hyp_args["config_path"]
+        self.config_abs_path = os.path.abspath(self.config_path)
+        self.model_abs_path = os.path.dirname(self.config_abs_path)
+        tokenizer_abs_path = os.path.join(self.model_abs_path, "tokenizer")
+        self.src_vocab_path = os.path.join(tokenizer_abs_path, hyp_args["src_vocab_path"])
+        self.tgt_vocab_path = os.path.join(tokenizer_abs_path, hyp_args["tgt_vocab_path"])
+        self.src_bpe_model_path = os.path.join(tokenizer_abs_path, hyp_args["src_bpe_model_path"])
+        self.tgt_bpe_model_path = os.path.join(tokenizer_abs_path, hyp_args["tgt_bpe_model_path"])
+
         self.max_len = hyp_args["max_len"]
+
+        self.print_config_info(hyp_args)
 
         self.src_sp = spm.SentencePieceProcessor()
         self.src_sp.Load(self.src_bpe_model_path)
@@ -36,7 +42,7 @@ class ServiceTransformer(ExportTransformer):
 
         with self.graph.as_default():
             with self.sess.as_default() as sess:
-                metagraph = tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], f"{self.model_version}/{MODEL_FOLDER_NAME}")
+                metagraph = tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], os.path.join(self.model_abs_path, MODEL_FOLDER_NAME))
                 self._mapping = dict()
                 self._mapping.update(dict(metagraph.signature_def[signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY].inputs))
                 self._mapping.update(dict(metagraph.signature_def[signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY].outputs))
@@ -51,6 +57,13 @@ class ServiceTransformer(ExportTransformer):
         tensor_name = self._mapping[sign_name].name
         print(f"mapping : {sign_name} -> {tensor_name}")
         return self.graph.get_tensor_by_name(tensor_name)
+
+    def print_config_info(self, hyp_args):
+        print(f"Now loading '{self.model_version}' model")
+        print('='*100)
+        for key,value in hyp_args.items():
+            print('{} : {}'.format(key, value))
+        print('='*100)
 
     def infer(self, input_sent):
         """
