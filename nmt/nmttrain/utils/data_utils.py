@@ -33,7 +33,8 @@ def idx2plainword(vocab_dict, idx, sp):
 
 def sent2idx(reversed_vocab_dict, sent_list, max_len):
     word_list = sent_list + ["</s>"]
-    idx_list = list(map(lambda x: reversed_vocab_dict[x], word_list))
+    unk_idx = len(reversed_vocab_dict) - 1
+    idx_list = list(map(lambda x: reversed_vocab_dict[x] if x in reversed_vocab_dict else unk_idx, word_list))
     padded_idx_list = idx_list + [0] * (max_len - len(idx_list))
     expanded_padded_idx_list = [padded_idx_list]
     return expanded_padded_idx_list
