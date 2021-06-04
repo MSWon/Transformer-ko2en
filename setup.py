@@ -23,10 +23,10 @@ setup(
         # nmt.nmtcli모듈 cli.py에서 main함수를 실행한다는 의미
         "console_scripts" : ["nmt=nmt.nmtcli.cli:main"]
     },
-    scripts=['nmt/download_data.sh', 'nmt/download_model.sh',
-             'nmt/multi-bleu.perl', 'nmt/train_config.yaml',
-             'nmt/nmtservice/templates/index.html',
-             'nmt/nmtservice/static/css/main.css'],
+    scripts=[
+        'nmt/multi-bleu.perl', 'nmt/train_config.yaml',
+        'nmt/nmtservice/templates/index.html', 'nmt/nmtservice/static/css/main.css'
+    ],
     include_package_data=True,
     zip_safe=False,
 )
