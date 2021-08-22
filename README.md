@@ -172,18 +172,24 @@ Now training
 ```
 
 ### nmt infer
+- config 파일을 준비합니다
+```python
+>>> import yaml
+>>> hyp_args = yaml.load(open("./koen.2021.0704/service_config.yaml"))
+>>> hyp_args["config_path"] = "./koen.2021.0704/service_config.yaml"
+```
 - Translate 모듈로부터 모델을 생성합니다
 ```python
->>> from nmt.translate import Translate
->>> model = Translate(hyp_args)
+>>> from nmt.nmtservice.service_transformer import ServiceTransformer
+>>> model = ServiceTransformer(hyp_args)
 ```
 - 문장을 직접 모델에 입력하여 번역문을 확인합니다
 ```python
->>> model.service_infer("나는 학교에 간다.")
+>>> model.infer("나는 학교에 간다.")
 'I go to school.'
 ```
 ```python
->>> model.service_infer("인공신경망의 발달로 인해 높은 품질의 번역이 가능해졌습니다.")
+>>> model.infer("인공신경망의 발달로 인해 높은 품질의 번역이 가능해졌습니다.")
 'The development of the artificial neural network has enabled high-quality translation.'
 ```
 
