@@ -24,11 +24,46 @@ Now unpacking file 'data.tar.gz'
 ```
 
 ```
+$ tree ./data
+data
+├── bpe.en.model
+├── bpe.en.vocab
+├── bpe.ko.model
+├── bpe.ko.vocab
+├── train.en.bpe
+├── train.ko.bpe
+├── tst2016.en
+├── tst2016.en.bpe
+├── tst2016.ko
+├── tst2016.ko.bpe
+├── tst2017.en
+├── tst2017.en.bpe
+├── tst2017.ko
+└── tst2017.ko.bpe
+```
+
+```
 $ nmt download -m model
 Now downloading file 'koen.2021.0704.tar.gz'
 10594it [00:06, 1568.49it/s]
 
 Now unpacking file 'koen.2021.0704.tar.gz'
+```
+
+```
+$ tree ./koen.2021.0704
+koen.2021.0704/
+├── exported.model
+│   ├── saved_model.pb
+│   └── variables
+│       ├── variables.data-00000-of-00001
+│       └── variables.index
+├── service_config.yaml
+└── tokenizer
+    ├── bpe.model.en
+    ├── bpe.model.ko
+    ├── vocab.en
+    └── vocab.ko
 ```
 
 ## config 파일
