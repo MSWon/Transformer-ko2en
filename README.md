@@ -14,9 +14,71 @@ $ python setup.py install
 
 - **nmt download** 명령어를 통해 학습 데이터 및 학습된 모델을 다운받습니다
 - 학습 데이터, 학습 모델 및 config 파일은 /opt/anaconda3/envs/${user이름}/lib/python3.6/site-packages/nmt-1.0.0-py3.6.egg/nmt에 저장됩니다
+
 ```
 $ nmt download -m data
+Now downloading file 'data.tar.gz'
+6311it [00:09, 676.18it/s]
+
+Now unpacking file 'data.tar.gz'
+```
+
+```
 $ nmt download -m model
+Now downloading file 'koen.2021.0704.tar.gz'
+10594it [00:06, 1568.49it/s]
+
+Now unpacking file 'koen.2021.0704.tar.gz'
+```
+
+## config 파일
+
+### train_config
+
+- `examples/configs/train_config.yaml`
+
+```
+## Data config
+train_src_corpus_path: ./data/train.ko.bpe
+train_tgt_corpus_path: ./data/train.en.bpe
+test_src_corpus_path: ./data/tst2016.ko.bpe
+test_tgt_corpus_path: ./data/tst2016.en.bpe
+src_vocab_path: ./data/bpe.ko.vocab
+tgt_vocab_path: ./data/bpe.en.vocab
+src_bpe_model_path: ./data/bpe.ko.model
+tgt_bpe_model_path: ./data/bpe.en.model
+## Training config
+training_steps: 100000
+warmup_step: 4000
+max_len: 50
+batch_size: 40000
+bos_idx: 2
+eos_idx: 3
+n_gpus: 8
+model_path: transformer_ko2en.ckpt
+## Model config 
+num_layers: 6
+num_heads: 8
+hidden_dim: 512
+linear_key_dim: 512
+linear_value_dim: 512
+ffn_dim: 2048
+dropout: 0.1
+vocab_size: 32000 
+shared_dec_inout_emb: False
+```
+
+### service_config
+
+- `examples/configs/service_config.yaml`
+
+```
+model_version: koen.2021.0704
+src_vocab_path: vocab.ko
+tgt_vocab_path: vocab.en
+src_bpe_model_path: bpe.model.ko
+tgt_bpe_model_path: bpe.model.en
+max_len: 50
 ```
 
 ## Python 패키지 사용방법
@@ -118,7 +180,7 @@ Could take few minutes
 ### nmt infer
 
 ```
-$ nmt infer --config_path ./train_config.yaml
+$ nmt infer -c ./koen.2021.0704/service_config.yaml
 Now building model
 Model loaded!
 Input Korean sent : 인공신경망의 발달로 인해 높은 품질의 번역이 가능해졌습니다.
@@ -130,30 +192,93 @@ The development of the artificial neural network has enabled high-quality transl
 - 원하는 port 번호를 입력합니다
 - 브라우저를 키고 ${ip주소}:${port번호}로 접속합니다
 ```
-$ nmt service -m website -p 6006
-Now building model
-Model loaded!
- * Serving Flask app "app" (lazy loading)
+$ nmt service -m -c ./koen.2021.0704/service_config.yaml website -p 6006
+Now loading 'koen.2021.0704' model
+====================================================================================================
+model_version : koen.2021.0704
+src_vocab_path : vocab.ko
+tgt_vocab_path : vocab.en
+src_bpe_model_path : bpe.model.ko
+tgt_bpe_model_path : bpe.model.en
+max_len : 50
+config_path : ./koen.2021.0704/service_config.yaml
+====================================================================================================
+
+mapping : inputs -> Placeholder:0
+mapping : outputs -> Squeeze:0
+ * Serving Flask app "app_restapi" (lazy loading)
  * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
  * Debug mode: on
+ * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
  * Running on http://0.0.0.0:6006/ (Press CTRL+C to quit)
  * Restarting with stat
 ```
 
-### nmt service for rest-api
+### nmt service for rest-api & serving
 
-- nmt service 모드를 restapi로 입력합니다
+- nmt service 모드를 `api`로 입력합니다
 - 원하는 port 번호를 입력합니다
 
 ```
-$ nmt service -m restapi -p 6006
-Now building model
-Model loaded!
- * Serving Flask app "app" (lazy loading)
+$ nmt service -m api -c ./koen.2021.0704/service_config.yaml -p 6006
+Now loading 'koen.2021.0704' model
+====================================================================================================
+model_version : koen.2021.0704
+src_vocab_path : vocab.ko
+tgt_vocab_path : vocab.en
+src_bpe_model_path : bpe.model.ko
+tgt_bpe_model_path : bpe.model.en
+max_len : 50
+config_path : ./koen.2021.0704/service_config.yaml
+====================================================================================================
+
+mapping : inputs -> Placeholder:0
+mapping : outputs -> Squeeze:0
+ * Serving Flask app "app_restapi" (lazy loading)
  * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
  * Debug mode: on
+ * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
  * Running on http://0.0.0.0:6006/ (Press CTRL+C to quit)
  * Restarting with stat
+```
+
+- nmt service 모드를 `serving`로 입력합니다
+- 원하는 port 번호를 입력합니다
+
+```
+$ nmt service -m serving -c ./koen.2021.0704/service_config.yaml -p 6006
+[2021-08-22 19:57:56 +0900] [11649] [INFO] Starting gunicorn 20.1.0
+[2021-08-22 19:57:56 +0900] [11649] [INFO] Listening at: http://0.0.0.0:6006 (11649)
+[2021-08-22 19:57:56 +0900] [11649] [INFO] Using worker: sync
+[2021-08-22 19:57:56 +0900] [11674] [INFO] Booting worker with pid: 11674
+WARNING:tensorflow:From /Users/user/Desktop/minsub/python_code/Transformer-ko2en/nmt/nmttrain/utils/model_utils.py:122: The name tf.layers.Layer is deprecated. Please use tf.compat.v1.layers.Layer instead.
+
+/Users/user/Desktop/minsub/python_code/Transformer-ko2en/nmt/serving/api.py:44: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
+  hyp_args = yaml.load(open(config_path))
+Now loading 'koen.2021.0704' model
+====================================================================================================
+model_version : koen.2021.0704
+src_vocab_path : vocab.ko
+tgt_vocab_path : vocab.en
+src_bpe_model_path : bpe.model.ko
+tgt_bpe_model_path : bpe.model.en
+max_len : 50
+config_path : ./koen.2021.0704/service_config.yaml
+====================================================================================================
+
+mapping : inputs -> Placeholder:0
+mapping : outputs -> Squeeze:0
+[2021-08-22 22:07:30 +0900] [11649] [CRITICAL] WORKER TIMEOUT (pid:11674)
+[2021-08-22 22:07:30 +0900] [11674] [INFO] Worker exiting (pid: 11674)
+[2021-08-22 22:07:31 +0900] [11649] [WARNING] Worker with pid 11674 was terminated due to signal 9
+[2021-08-22 22:07:31 +0900] [41950] [INFO] Booting worker with pid: 41950
+[2021-08-22 22:07:33 +0900] [11649] [INFO] Handling signal: winch
 ```
 
 - python에서 아래와 같이 요청을 합니다
