@@ -37,7 +37,7 @@ Now unpacking file 'koen.2021.0704.tar.gz'
 
 - `examples/configs/train_config.yaml`
 
-```
+```yaml
 ## Data config
 train_src_corpus_path: ./data/train.ko.bpe
 train_tgt_corpus_path: ./data/train.en.bpe
@@ -72,7 +72,7 @@ shared_dec_inout_emb: False
 
 - `examples/configs/service_config.yaml`
 
-```
+```yaml
 model_version: koen.2021.0704
 src_vocab_path: vocab.ko
 tgt_vocab_path: vocab.en
