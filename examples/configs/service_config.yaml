@@ -1,0 +1,6 @@
+model_version: koen.2021.0704
+src_vocab_path: vocab.ko
+tgt_vocab_path: vocab.en
+src_bpe_model_path: bpe.model.ko
+tgt_bpe_model_path: bpe.model.en
+max_len: 50
