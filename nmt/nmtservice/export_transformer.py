@@ -16,7 +16,7 @@ class ExportTransformer(object):
         self.max_len = hyp_args["max_len"]
         self.batch_size = hyp_args["batch_size"]
         self.checkpoint_path = input_checkpoint
-        self.input_placeholder = tf.placeholder(shape=(1, self.max_len), dtype=tf.int32)
+        self.input_placeholder = tf.placeholder(shape=(None, self.max_len), dtype=tf.int32)
 
         print("Now building model")
         model = Transformer(hyp_args)
