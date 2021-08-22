@@ -13,9 +13,9 @@ def nmt_download(args):
         TOTAL_SIZE = 206_572_573
         download_file_from_google_drive(FILE_ID, FILE_NAME, TOTAL_SIZE)
     elif args.mode == "model":
-        FILE_ID = "117l6DaibafWvTiLjE0gkdJ1PAH0uaDmV"
-        FILE_NAME = "koen.2021.0530.tar.gz"
-        TOTAL_SIZE = 346_957_468
+        FILE_ID = "1A3Lt2U1l8xf4Ky2R-xfk75cXKDrPJvi_"
+        FILE_NAME = "koen.2021.0704.tar.gz"
+        TOTAL_SIZE = 346_964_756
         download_file_from_google_drive(FILE_ID, FILE_NAME, TOTAL_SIZE)
     else:
         raise ValueError('mode should be (data/model)')

@@ -24,7 +24,7 @@ def main():
     subparser_service = subparsers.add_parser("service", help="package for serving on flask server")
     subparser_service.add_argument("--port", "-p", required=True, help="port number")
     subparser_service.add_argument("--config-path", "-c", required=True, help="config file path")
-    subparser_service.add_argument("--mode", "-m", required=True, help="(restapi/website)")
+    subparser_service.add_argument("--mode", "-m", required=True, help="(api/website/serving)")
     subparser_service.set_defaults(func=nmt_service)
 
     # nmt tokenize
