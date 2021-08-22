@@ -4,8 +4,8 @@ import yaml
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config_path", help="path of config file", required=True)
-    parser.add_argument("--mode", help="mode (train/infer)", required=True)
+    parser.add_argument("--config_path", "-c", help="path of config file", required=True)
+    parser.add_argument("--mode", "-m", help="mode (train/infer)", required=True)
     args = parser.parse_args()
 
     hyp_args = yaml.load(open(args.config_path))
@@ -20,11 +20,11 @@ if __name__ == '__main__':
         ## Train model
         model.train()
     elif args.mode == "infer":
-        from nmt.translate import Translate
+        from nmt.nmtservice.service_transformer import ServiceTransformer
         ## Build model
-        model = Translate(hyp_args)
+        model = ServiceTransformer(hyp_args)
         ## Infer model
-        model.infer()
+        model.cmd_infer()
     else:
         raise ValueError('mode should be (train/infer)')
 

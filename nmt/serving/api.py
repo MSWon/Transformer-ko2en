@@ -1,4 +1,6 @@
 from flask import Flask, request, render_template, jsonify
+from flask_classful import FlaskView,route
+from nmt.nmtservice.service_transformer import ServiceTransformer
 import yaml
 import argparse
 import os
@@ -22,7 +24,9 @@ db_trans ={'고맙습니다': 'Thank you',
            '형': 'Brother', 
            '남동생': 'Brother', '여동생': 'Sister', '누나': 'Sister', '할머니': 'Grandma', '할아버지': 'Grandpa'}
 
+
 app = Flask(__name__)
+
 
 @app.route('/nmt', methods=['GET'])
 def index():
@@ -35,15 +39,19 @@ def index():
         output_sent = model.infer(input_sent)
     return jsonify({"srcLangType":src_type, "tgtLangType":tgt_type, "translatedText":output_sent})
 
+def create_app(config_path):
+    global model
+    hyp_args = yaml.load(open(config_path))
+    hyp_args["config_path"] = config_path
+    model = ServiceTransformer(hyp_args)
+    return app
 
-if __name__ == '__main__':
-    from nmt.nmtservice.service_transformer import ServiceTransformer
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", "-p", help="port number", required=True)
     parser.add_argument("--config_path", "-c", required=True, help="config file path")
     args = parser.parse_args()
     hyp_args = yaml.load(open(args.config_path))
     hyp_args["config_path"] = args.config_path
-    ## Build model
     model = ServiceTransformer(hyp_args)
-    app.run(host='0.0.0.0', port=args.port, debug=True)
+    app.run()

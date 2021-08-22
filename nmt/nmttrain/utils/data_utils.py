@@ -1,4 +1,5 @@
 import tensorflow as tf
+import re
 
 _buffer_size = 2000000
 _bucket_size = 10
@@ -12,12 +13,15 @@ def get_vocab(vocab_path, isTF=True):
             vocabulary_file=vocab_path_tensor,
             num_oov_buckets=0,
             default_value=1)
+        return vocab_dict
     else:
         vocab_dict = {}
+        reversed_vocab_dict = {}
         with open(vocab_path, "r") as f:
             for vocab in f:
                 vocab_dict[len(vocab_dict)] = vocab.strip()
-    return vocab_dict
+                reversed_vocab_dict[vocab.strip()] = len(reversed_vocab_dict)
+    return vocab_dict, reversed_vocab_dict
 
 def idx2bpeword(vocab_dict, idx):
     word_list = list(map(lambda x: vocab_dict[x], idx))
@@ -26,6 +30,30 @@ def idx2bpeword(vocab_dict, idx):
 def idx2plainword(vocab_dict, idx, sp):
     word_list = list(map(lambda x: vocab_dict[x], idx))
     return sp.DecodePieces(word_list)
+
+def sent2idx(reversed_vocab_dict, sent_list, max_len):
+    word_list = sent_list + ["</s>"]
+    unk_idx = len(reversed_vocab_dict) - 1
+    idx_list = list(map(lambda x: reversed_vocab_dict[x] if x in reversed_vocab_dict else unk_idx, word_list))
+    padded_idx_list = idx_list + [0] * (max_len - len(idx_list))
+    expanded_padded_idx_list = [padded_idx_list]
+    return expanded_padded_idx_list
+
+def preprocess(sent):
+    """
+    :param sent: string
+    :return: preprocessed sentence
+    """
+    sent = re.sub("\(.*?\)|\[.*?\]", "", sent)
+    sent = re.sub("[^0-9a-zA-Z가-힣_\-@\.:&+!?'/,\s]", "", sent)
+    url_regex = "(http[s]?://([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)|(www.([a-zA-Z]|[가-힣]|[0-9]|[-_@\.&+!*/])+)"
+    is_url = re.search(url_regex, sent)
+    if is_url:
+        url_original = is_url.group()
+    else:
+        url_original = None
+    sent = re.sub(url_regex, "<URL>", sent)
+    return sent, url_original
 
 def train_dataset_fn(src_corpus_path, tgt_corpus_path,
                      src_vocab_path, tgt_vocab_path, max_len, batch_size):

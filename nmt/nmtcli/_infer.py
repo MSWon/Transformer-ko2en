@@ -1,11 +1,18 @@
-import os
+
 
 def nmt_infer(args):
     """
     :param args:
     :return:
     """
-    uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
-    path = uppath(__file__, 2)
-    os.system("python {} --config_path {} --mode infer".format(os.path.join(path, "main.py"), args.config_path))
+    import os
+    import yaml
+    from nmt.nmtservice.service_transformer import ServiceTransformer
+
+    hyp_args = yaml.load(open(args.config_path))
+    hyp_args["config_path"] = args.config_path
+    ## Build model
+    model = ServiceTransformer(hyp_args)
+    ## Infer model
+    model.cmd_infer()
 
