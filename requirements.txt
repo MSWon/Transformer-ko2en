@@ -3,5 +3,5 @@ numpy<1.17
 sentencepiece==0.1.8
 pyyaml
 tensorboard==1.14.0
-flask==1.1.1
+flask==2.3.2
 tqdm
